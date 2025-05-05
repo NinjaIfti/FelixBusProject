@@ -20,24 +20,17 @@ $error_message = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
     $origin = $conn->real_escape_string($_POST['origin'] ?? '');
     $destination = $conn->real_escape_string($_POST['destination'] ?? '');
-    $travel_date = $conn->real_escape_string($_POST['travel_date'] ?? '');
     
-    if (empty($origin) || empty($destination) || empty($travel_date)) {
-        $error_message = "Please fill in all search fields.";
+    if (empty($origin) || empty($destination)) {
+        $error_message = "Please select both origin and destination.";
     } else {
-        // Get day of week (1 = Monday, 7 = Sunday)
-        $day_of_week = date('N', strtotime($travel_date));
-        
         // Query for routes
         $routes_query = "SELECT r.id as route_id, r.origin, r.destination, r.base_price, r.distance, r.capacity,
-                        s.id as schedule_id, s.departure_time, s.arrival_time,
-                        (SELECT COUNT(*) FROM tickets 
-                         WHERE schedule_id = s.id AND travel_date = '$travel_date' AND status != 'cancelled') as booked_seats
+                        s.id as schedule_id, s.departure_time, s.arrival_time, s.days
                         FROM routes r
                         JOIN schedules s ON r.id = s.route_id
                         WHERE r.origin = '$origin' 
                         AND r.destination = '$destination'
-                        AND s.days LIKE '%$day_of_week%'
                         ORDER BY s.departure_time";
         
         $routes_result = $conn->query($routes_query);
@@ -49,6 +42,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
         }
         
         $search_performed = true;
+    }
+}
+
+// If no search performed, show all routes
+if (!$search_performed && empty($error_message)) {
+    $all_routes_query = "SELECT r.id as route_id, r.origin, r.destination, r.base_price, r.distance, r.capacity,
+                        s.id as schedule_id, s.departure_time, s.arrival_time, s.days
+                        FROM routes r
+                        JOIN schedules s ON r.id = s.route_id
+                        ORDER BY r.origin, r.destination, s.departure_time
+                        LIMIT 20"; // Limit to 20 to avoid overwhelming the page
+    
+    $all_routes_result = $conn->query($all_routes_query);
+    
+    if ($all_routes_result && $all_routes_result->num_rows > 0) {
+        while ($route = $all_routes_result->fetch_assoc()) {
+            $routes[] = $route;
+        }
     }
 }
 ?>
@@ -121,7 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
     <div class="bg-blue-700 py-16 text-white">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl font-bold mb-4">Find Your Route</h1>
-            <p class="text-xl max-w-2xl mx-auto">Search for bus routes between cities and book your tickets online.</p>
+            <p class="text-xl max-w-2xl mx-auto">Search for bus routes between cities or browse our available routes.</p>
         </div>
     </div>
 
@@ -129,7 +140,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
     <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md p-6 -mt-16">
             <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                <div class="grid md:grid-cols-4 gap-4">
+                <div class="grid md:grid-cols-3 gap-4">
                     <div>
                         <label for="origin" class="block text-gray-700 text-sm font-bold mb-2">Origin</label>
                         <select id="origin" name="origin" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
@@ -164,10 +175,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
                             ?>
                         </select>
                     </div>
-                    <div>
-                        <label for="travel_date" class="block text-gray-700 text-sm font-bold mb-2">Travel Date</label>
-                        <input type="date" id="travel_date" name="travel_date" min="<?php echo date('Y-m-d'); ?>" value="<?php echo isset($_POST['travel_date']) ? $_POST['travel_date'] : date('Y-m-d'); ?>" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    </div>
                     <div class="flex items-end">
                         <button type="submit" name="search" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full">
                             <i class="fas fa-search mr-2"></i> Search Routes
@@ -189,145 +196,136 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
         <?php if($search_performed): ?>
             <h2 class="text-2xl font-bold text-gray-800 mb-6">
                 <?php if(!empty($routes)): ?>
-                    Available Routes from <?php echo htmlspecialchars($_POST['origin']); ?> to <?php echo htmlspecialchars($_POST['destination']); ?> on <?php echo date('F j, Y', strtotime($_POST['travel_date'])); ?>
+                    Available Routes from <?php echo htmlspecialchars($_POST['origin']); ?> to <?php echo htmlspecialchars($_POST['destination']); ?>
                 <?php else: ?>
                     No Routes Found
                 <?php endif; ?>
             </h2>
-            
-            <?php if(!empty($routes)): ?>
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrival</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <?php foreach($routes as $route): ?>
-                                <?php 
-                                    // Calculate duration
-                                    $departure = new DateTime($route['departure_time']);
-                                    $arrival = new DateTime($route['arrival_time']);
-                                    $duration = $departure->diff($arrival);
-                                    $duration_text = ($duration->h > 0 ? $duration->h . 'h ' : '') . $duration->i . 'm';
-                                    
-                                    // Calculate availability
-                                    $available_seats = $route['capacity'] - $route['booked_seats'];
-                                    $availability_percentage = ($available_seats / $route['capacity']) * 100;
-                                ?>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-lg font-semibold text-gray-900"><?php echo date('g:i A', strtotime($route['departure_time'])); ?></div>
-                                        <div class="text-sm text-gray-500"><?php echo htmlspecialchars($route['origin']); ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-lg font-semibold text-gray-900"><?php echo date('g:i A', strtotime($route['arrival_time'])); ?></div>
-                                        <div class="text-sm text-gray-500"><?php echo htmlspecialchars($route['destination']); ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900"><?php echo $duration_text; ?></div>
-                                        <div class="text-sm text-gray-500"><?php echo $route['distance'] ? $route['distance'] . ' km' : 'N/A'; ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-lg font-semibold text-gray-900">$<?php echo number_format($route['base_price'], 2); ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            <?php echo $available_seats; ?> seats available
-                                        </div>
-                                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                            <div class="
-                                                <?php 
-                                                    echo $availability_percentage > 50 ? 'bg-green-500' : 
-                                                        ($availability_percentage > 20 ? 'bg-yellow-500' : 'bg-red-500'); 
-                                                ?> 
-                                                h-2 rounded-full" 
-                                                style="width: <?php echo $availability_percentage; ?>%">
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <?php if($available_seats > 0): ?>
-                                            <a href="booking.php?schedule_id=<?php echo $route['schedule_id']; ?>&travel_date=<?php echo $_POST['travel_date']; ?>" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring focus:ring-blue-200 disabled:opacity-25 transition">
-                                                Book Now
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest">
-                                                Sold Out
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="bg-white rounded-lg shadow-md p-8 text-center">
-                    <div class="text-gray-400 text-5xl mb-4">
-                        <i class="fas fa-route"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">No Routes Available</h3>
-                    <p class="text-gray-600 mb-6">We couldn't find any routes matching your search criteria.</p>
-                    <p class="text-gray-600">Try searching with different locations or dates.</p>
-                </div>
-            <?php endif; ?>
+        <?php elseif(!empty($routes)): ?>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Bus Routes</h2>
+        <?php endif; ?>
+        
+        <?php if(!empty($routes)): ?>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origin</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrival Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <?php 
+                        $days_mapping = [
+                            '1' => 'Monday',
+                            '2' => 'Tuesday',
+                            '3' => 'Wednesday',
+                            '4' => 'Thursday',
+                            '5' => 'Friday',
+                            '6' => 'Saturday',
+                            '7' => 'Sunday'
+                        ];
+                        
+                        foreach($routes as $route): 
+                            // Calculate duration
+                            $departure = new DateTime($route['departure_time']);
+                            $arrival = new DateTime($route['arrival_time']);
+                            $duration = $departure->diff($arrival);
+                            $duration_text = ($duration->h > 0 ? $duration->h . 'h ' : '') . $duration->i . 'm';
+                            
+                            // Format days
+                            $days_array = explode(', ', $route['days']);
+                            $days_text = [];
+                            foreach($days_array as $day) {
+                                if(isset($days_mapping[$day])) {
+                                    $days_text[] = substr($days_mapping[$day], 0, 3);
+                                }
+                            }
+                            $days_display = implode(', ', $days_text);
+                        ?>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($route['origin']); ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($route['destination']); ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900"><?php echo date('g:i A', strtotime($route['departure_time'])); ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900"><?php echo date('g:i A', strtotime($route['arrival_time'])); ?></div>
+                                <div class="text-xs text-gray-500">Duration: <?php echo $duration_text; ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900"><?php echo $days_display; ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900"><?php echo number_format($route['distance'], 1); ?> km</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$<?php echo number_format($route['base_price'], 2); ?></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <?php if(isset($_SESSION['user_id'])): ?>
+                                <a href="#" class="text-blue-600 hover:text-blue-900 inline-flex items-center" 
+                                   onclick="showBookingModal(<?php echo $route['schedule_id']; ?>)">
+                                    <i class="fas fa-ticket-alt mr-1"></i> Book
+                                </a>
+                                <?php else: ?>
+                                <a href="login.php?redirect=routes" class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                    <i class="fas fa-sign-in-alt mr-1"></i> Login to Book
+                                </a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php elseif(!$search_performed): ?>
+            <div class="text-center py-8">
+                <p class="text-gray-500">Use the search form above to find routes between specific cities.</p>
+            </div>
         <?php else: ?>
-            <div class="bg-white rounded-lg shadow-md p-8">
-                <div class="text-center mb-8">
-                    <div class="text-blue-600 text-5xl mb-4">
-                        <i class="fas fa-bus"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Popular Routes</h2>
-                    <p class="text-gray-600">Check out some of our most popular bus routes.</p>
-                </div>
-                
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">New York to Boston</h3>
-                            <p class="text-gray-600 mb-4">Daily departures, 4h journey</p>
-                            <p class="text-xl font-bold text-blue-600 mb-4">From $45.00</p>
-                            <button onclick="setRoute('New York', 'Boston')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Check availability <i class="fas fa-arrow-right ml-1"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Los Angeles to San Francisco</h3>
-                            <p class="text-gray-600 mb-4">Multiple daily departures, 6h journey</p>
-                            <p class="text-xl font-bold text-blue-600 mb-4">From $65.00</p>
-                            <button onclick="setRoute('Los Angeles', 'San Francisco')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Check availability <i class="fas fa-arrow-right ml-1"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Chicago to Detroit</h3>
-                            <p class="text-gray-600 mb-4">Daily departures, 5h journey</p>
-                            <p class="text-xl font-bold text-blue-600 mb-4">From $55.00</p>
-                            <button onclick="setRoute('Chicago', 'Detroit')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Check availability <i class="fas fa-arrow-right ml-1"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div class="text-center py-8">
+                <p class="text-gray-500">No routes found for your search criteria. Please try different locations.</p>
             </div>
         <?php endif; ?>
     </div>
 
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-xl font-semibold text-gray-900">Book Ticket</h3>
+            </div>
+            <div class="p-6">
+                <form action="booking.php" method="GET">
+                    <input type="hidden" id="schedule_id" name="schedule_id">
+                    
+                    <div class="mb-4">
+                        <label for="travel_date" class="block text-gray-700 text-sm font-bold mb-2">Select Travel Date</label>
+                        <input type="date" id="travel_date" name="travel_date" min="<?php echo date('Y-m-d'); ?>" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                    
+                    <div class="flex items-center justify-end pt-4 border-t">
+                        <button type="button" onclick="hideBookingModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2 hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Proceed to Booking</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-10 mt-12">
+    <footer class="bg-blue-800 text-white py-10 mt-auto">
         <div class="container mx-auto px-4">
             <div class="grid md:grid-cols-3 gap-8">
                 <div>
@@ -368,13 +366,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search'])) {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
         
-        // Function to set the route in the search form
-        function setRoute(origin, destination) {
-            document.getElementById('origin').value = origin;
-            document.getElementById('destination').value = destination;
-            document.getElementById('travel_date').focus();
+        // Booking modal functions
+        function showBookingModal(scheduleId) {
+            document.getElementById('schedule_id').value = scheduleId;
+            document.getElementById('bookingModal').classList.remove('hidden');
+        }
+        
+        function hideBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
         }
     </script>
 </body>
-</html>
-<?php $conn->close(); ?> 
+</html> 

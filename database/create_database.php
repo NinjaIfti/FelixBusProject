@@ -55,8 +55,10 @@ $tables = [
         amount DECIMAL(10,2) NOT NULL,
         transaction_type ENUM('deposit', 'withdrawal', 'purchase', 'refund') NOT NULL,
         reference VARCHAR(100),
+        processed_by INT(11) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
+        FOREIGN KEY (processed_by) REFERENCES users(id) ON DELETE SET NULL
     )",
     
     // Routes
@@ -143,6 +145,44 @@ if ($conn->query($admin_sql) === TRUE) {
     }
 } else {
     echo "Error creating admin user: " . $conn->error . "<br>";
+}
+
+// Create a staff user
+$staff_password = password_hash('staff123', PASSWORD_DEFAULT);
+$staff_sql = "INSERT INTO users (username, password, email, first_name, last_name, user_type) 
+              VALUES ('staff', '$staff_password', 'staff@felixbus.com', 'Staff', 'Member', 'staff')
+              ON DUPLICATE KEY UPDATE id=id";
+
+if ($conn->query($staff_sql) === TRUE) {
+    echo "Staff user created successfully<br>";
+} else {
+    echo "Error creating staff user: " . $conn->error . "<br>";
+}
+
+// Create a demo client user
+$client_password = password_hash('client123', PASSWORD_DEFAULT);
+$client_sql = "INSERT INTO users (username, password, email, first_name, last_name, user_type) 
+               VALUES ('client', '$client_password', 'client@example.com', 'Demo', 'Client', 'client')
+               ON DUPLICATE KEY UPDATE id=id";
+
+if ($conn->query($client_sql) === TRUE) {
+    echo "Demo client created successfully<br>";
+    
+    // Get client user id
+    $client_id = $conn->insert_id ?: $conn->query("SELECT id FROM users WHERE username='client'")->fetch_assoc()['id'];
+    
+    // Create wallet for client
+    $wallet_sql = "INSERT INTO wallets (user_id, balance) 
+                  VALUES ('$client_id', 100.00)
+                  ON DUPLICATE KEY UPDATE id=id";
+    
+    if ($conn->query($wallet_sql) === TRUE) {
+        echo "Client wallet created successfully<br>";
+    } else {
+        echo "Error creating client wallet: " . $conn->error . "<br>";
+    }
+} else {
+    echo "Error creating demo client: " . $conn->error . "<br>";
 }
 
 $conn->close();
