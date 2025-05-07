@@ -35,42 +35,69 @@ if(isset($_POST['cancel_ticket'])) {
         if($ticket['status'] !== 'active') {
             $error_message = "Only active tickets can be cancelled.";
         } else {
-            // Begin transaction
-            $conn->begin_transaction();
+            // Get company wallet
+            $company_wallet_query = "SELECT w.id FROM wallets w 
+                                    JOIN users u ON w.user_id = u.id 
+                                    WHERE u.username = 'felixbus'";
+            $company_wallet_result = $conn->query($company_wallet_query);
             
-            try {
-                // Update ticket status
-                $update_query = "UPDATE tickets SET status = 'cancelled' WHERE id = $ticket_id";
-                if(!$conn->query($update_query)) {
-                    throw new Exception("Failed to update ticket status.");
+            if(!$company_wallet_result || $company_wallet_result->num_rows == 0) {
+                $error_message = "FelixBus company wallet not found. Cannot process refund.";
+            } else {
+                $company_wallet = $company_wallet_result->fetch_assoc();
+                $company_wallet_id = $company_wallet['id'];
+                
+                // Begin transaction
+                $conn->begin_transaction();
+                
+                try {
+                    // Update ticket status
+                    $update_query = "UPDATE tickets SET status = 'cancelled' WHERE id = $ticket_id";
+                    if(!$conn->query($update_query)) {
+                        throw new Exception("Failed to update ticket status.");
+                    }
+                    
+                    // Refund from company wallet to user wallet
+                    $wallet_id = $ticket['wallet_id'];
+                    $refund_amount = $ticket['price'];
+                    
+                    // Deduct from company wallet
+                    $update_company_wallet_query = "UPDATE wallets SET balance = balance - $refund_amount WHERE id = $company_wallet_id";
+                    if(!$conn->query($update_company_wallet_query)) {
+                        throw new Exception("Failed to update company wallet balance for refund.");
+                    }
+                    
+                    // Add to user wallet
+                    $update_wallet_query = "UPDATE wallets SET balance = balance + $refund_amount WHERE id = $wallet_id";
+                    if(!$conn->query($update_wallet_query)) {
+                        throw new Exception("Failed to update user wallet balance.");
+                    }
+                    
+                    // Log transaction for user
+                    $transaction_type = 'refund';
+                    $reference = "Refund for cancelled ticket #" . $ticket['ticket_number'];
+                    
+                    $log_transaction_query = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference, processed_by) 
+                                            VALUES ($wallet_id, $refund_amount, '$transaction_type', '$reference', $user_id)";
+                    if(!$conn->query($log_transaction_query)) {
+                        throw new Exception("Failed to log user transaction.");
+                    }
+                    
+                    // Log transaction for company
+                    $company_transaction_query = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference, processed_by) 
+                                                VALUES ($company_wallet_id, $refund_amount, 'withdrawal', 'Refund payment for ticket #{$ticket['ticket_number']}', $user_id)";
+                    if(!$conn->query($company_transaction_query)) {
+                        throw new Exception("Failed to log company transaction.");
+                    }
+                    
+                    // Commit transaction
+                    $conn->commit();
+                    $success_message = "Ticket cancelled successfully and refund processed.";
+                } catch (Exception $e) {
+                    // Rollback on error
+                    $conn->rollback();
+                    $error_message = "Error: " . $e->getMessage();
                 }
-                
-                // Refund to wallet
-                $wallet_id = $ticket['wallet_id'];
-                $refund_amount = $ticket['price'];
-                
-                $update_wallet_query = "UPDATE wallets SET balance = balance + $refund_amount WHERE id = $wallet_id";
-                if(!$conn->query($update_wallet_query)) {
-                    throw new Exception("Failed to update wallet balance.");
-                }
-                
-                // Log transaction
-                $transaction_type = 'refund';
-                $reference = "Refund for cancelled ticket #" . $ticket['ticket_number'];
-                
-                $log_transaction_query = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                        VALUES ($wallet_id, $refund_amount, '$transaction_type', '$reference')";
-                if(!$conn->query($log_transaction_query)) {
-                    throw new Exception("Failed to log transaction.");
-                }
-                
-                // Commit transaction
-                $conn->commit();
-                $success_message = "Ticket cancelled successfully and refund processed.";
-            } catch (Exception $e) {
-                // Rollback on error
-                $conn->rollback();
-                $error_message = "Error: " . $e->getMessage();
             }
         }
     } else {
@@ -140,7 +167,13 @@ $tickets_result = $conn->query($tickets_query);
                 <a href="tickets.php" class="flex items-center py-3 px-6 bg-blue-700 bg-opacity-60">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
+                <a href="manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-wallet mr-3"></i> Manage Wallets
+                </a>
                 <?php if($is_admin): ?>
+                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-building mr-3"></i> Company Wallet
+                </a>
                 <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>

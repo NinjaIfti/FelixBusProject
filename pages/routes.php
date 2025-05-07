@@ -71,43 +71,131 @@ if (!$search_performed && empty($error_message)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Routes - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .hero-image {
+            background-image: url('https://images.unsplash.com/photo-1464219789935-c2d9d9eefd40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ef4444;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .route-card {
+            transition: all 0.3s ease;
+        }
+        
+        .route-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-primary {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        
+        .btn-primary:hover::before {
+            left: 0;
+        }
+        
+        .search-form {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        tr {
+            transition: all 0.2s ease;
+        }
+        
+        tr:hover td {
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-900 min-h-screen text-gray-100">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <a href="index.php" class="text-2xl font-bold">FelixBus</a>
-                <div class="hidden md:flex space-x-4">
-                    <a href="routes.php" class="hover:text-blue-200 font-medium">Routes</a>
-                    <a href="timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="contact.php" class="hover:text-blue-200">Contact</a>
+    <nav class="bg-black text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <a href="index.php" class="text-2xl font-bold flex items-center">
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span> 
+                    <span>Felix<span class="text-red-600">Bus</span></span>
+                </a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="routes.php" class="nav-link text-red-500 font-medium">Routes</a>
+                    <a href="timetables.php" class="nav-link hover:text-red-500">Timetables</a>
+                    <a href="prices.php" class="nav-link hover:text-red-500">Prices</a>
+                    <a href="contact.php" class="nav-link hover:text-red-500">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
                 <?php if(isset($_SESSION['user_id'])): ?>
-                    <div class="relative group">
-                        <button class="flex items-center space-x-1">
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button @click="open = !open" class="flex items-center space-x-1 hover:text-red-500 transition duration-300">
                             <span>My Account</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
+                            <i class="fas fa-chevron-down text-xs transition duration-300" :class="{ 'transform rotate-180': open }"></i>
                         </button>
-                        <div class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20 hidden group-hover:block">
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
                             <?php if($_SESSION['user_type'] === 'client'): ?>
-                                <a href="client/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
-                                <a href="client/tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
-                                <a href="client/wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>
+                                <a href="client/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                                <a href="client/tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                                <a href="client/wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
                             <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                                <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Admin Panel</a>
+                                <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
                             <?php endif; ?>
-                            <a href="profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
-                            <a href="logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
+                            <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                            <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                         </div>
                     </div>
                 <?php else: ?>
-                    <a href="login.php" class="hover:text-blue-200">Login</a>
-                    <a href="register.php" class="bg-white text-blue-600 px-4 py-2 rounded-full font-medium hover:bg-blue-100">Register</a>
+                    <a href="login.php" class="nav-link hover:text-red-500">Login</a>
+                    <a href="register.php" class="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition duration-300 btn-primary">Register</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -118,32 +206,33 @@ if (!$search_performed && empty($error_message)) {
             </button>
         </div>
         <!-- Mobile menu -->
-        <div id="mobile-menu" class="md:hidden hidden bg-blue-700 pb-4">
+        <div id="mobile-menu" class="md:hidden hidden bg-gray-800 pb-4">
             <div class="container mx-auto px-4 flex flex-col space-y-2">
-                <a href="routes.php" class="text-white py-2 font-medium">Routes</a>
-                <a href="timetables.php" class="text-white py-2">Timetables</a>
-                <a href="prices.php" class="text-white py-2">Prices</a>
-                <a href="contact.php" class="text-white py-2">Contact</a>
+                <a href="routes.php" class="text-red-500 py-2 font-medium">Routes</a>
+                <a href="timetables.php" class="text-white py-2 hover:text-red-500">Timetables</a>
+                <a href="prices.php" class="text-white py-2 hover:text-red-500">Prices</a>
+                <a href="contact.php" class="text-white py-2 hover:text-red-500">Contact</a>
             </div>
         </div>
     </nav>
 
     <!-- Page Header -->
-    <div class="bg-blue-700 py-16 text-white">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl font-bold mb-4">Find Your Route</h1>
-            <p class="text-xl max-w-2xl mx-auto">Search for bus routes between cities or browse our available routes.</p>
+    <div class="hero-image py-24 relative">
+        <div class="absolute inset-0 bg-gradient-to-r from-black to-transparent"></div>
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Find Your <span class="text-red-600">Perfect</span> Route</h1>
+            <p class="text-xl max-w-2xl mx-auto">Discover premium bus connections between cities with our extensive network.</p>
         </div>
     </div>
 
     <!-- Search Form -->
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-md p-6 -mt-16">
+    <div class="container mx-auto px-4">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 -mt-16 search-form relative z-20 border border-gray-700">
             <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                 <div class="grid md:grid-cols-3 gap-4">
                     <div>
-                        <label for="origin" class="block text-gray-700 text-sm font-bold mb-2">Origin</label>
-                        <select id="origin" name="origin" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <label for="origin" class="block text-gray-300 text-sm font-medium mb-2">Origin</label>
+                        <select id="origin" name="origin" class="w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
                             <option value="">Select origin</option>
                             <?php 
                             if($origins_result && $origins_result->num_rows > 0): 
@@ -159,8 +248,8 @@ if (!$search_performed && empty($error_message)) {
                         </select>
                     </div>
                     <div>
-                        <label for="destination" class="block text-gray-700 text-sm font-bold mb-2">Destination</label>
-                        <select id="destination" name="destination" class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <label for="destination" class="block text-gray-300 text-sm font-medium mb-2">Destination</label>
+                        <select id="destination" name="destination" class="w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
                             <option value="">Select destination</option>
                             <?php 
                             if($destinations_result && $destinations_result->num_rows > 0): 
@@ -176,8 +265,8 @@ if (!$search_performed && empty($error_message)) {
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" name="search" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full">
-                            <i class="fas fa-search mr-2"></i> Search Routes
+                        <button type="submit" name="search" class="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 w-full transition duration-300 btn-primary">
+                            <i class="fas fa-search mr-2"></i> Find Routes
                         </button>
                     </div>
                 </div>
@@ -186,41 +275,54 @@ if (!$search_performed && empty($error_message)) {
     </div>
 
     <!-- Search Results -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-12">
         <?php if($error_message): ?>
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-                <p><?php echo $error_message; ?></p>
+            <div class="bg-red-900 border-l-4 border-red-500 text-white p-4 mb-6 rounded-md" role="alert">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p><?php echo $error_message; ?></p>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
         
         <?php if($search_performed): ?>
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <h2 class="text-2xl font-bold text-white mb-2">
                 <?php if(!empty($routes)): ?>
-                    Available Routes from <?php echo htmlspecialchars($_POST['origin']); ?> to <?php echo htmlspecialchars($_POST['destination']); ?>
+                    Routes from <span class="text-red-500"><?php echo htmlspecialchars($_POST['origin']); ?></span> to <span class="text-red-500"><?php echo htmlspecialchars($_POST['destination']); ?></span>
                 <?php else: ?>
                     No Routes Found
                 <?php endif; ?>
             </h2>
+            <?php if(!empty($routes)): ?>
+                <p class="text-gray-400 mb-6">Select from our available routes and schedules</p>
+            <?php else: ?>
+                <p class="text-gray-400 mb-6">We couldn't find any routes matching your search. Please try different locations.</p>
+            <?php endif; ?>
         <?php elseif(!empty($routes)): ?>
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Bus Routes</h2>
+            <h2 class="text-2xl font-bold text-white mb-2">Popular Routes</h2>
+            <p class="text-gray-400 mb-6">Our most traveled premium routes</p>
         <?php endif; ?>
         
         <?php if(!empty($routes)): ?>
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-900">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origin</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrival Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Origin</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Destination</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Departure</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Arrival</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Days</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Duration</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-700">
                         <?php 
                         $days_mapping = [
                             '1' => 'Monday',
@@ -240,122 +342,175 @@ if (!$search_performed && empty($error_message)) {
                             $duration_text = ($duration->h > 0 ? $duration->h . 'h ' : '') . $duration->i . 'm';
                             
                             // Format days
-                            $days_array = explode(', ', $route['days']);
+                            $days_array = explode(',', $route['days']);
                             $days_text = [];
-                            foreach($days_array as $day) {
-                                if(isset($days_mapping[$day])) {
-                                    $days_text[] = substr($days_mapping[$day], 0, 3);
+                            foreach($days_array as $day_num) {
+                                if(isset($days_mapping[$day_num])) {
+                                    $days_text[] = substr($days_mapping[$day_num], 0, 3);
                                 }
                             }
-                            $days_display = implode(', ', $days_text);
+                            $days_formatted = implode(', ', $days_text);
                         ?>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($route['origin']); ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($route['destination']); ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900"><?php echo date('g:i A', strtotime($route['departure_time'])); ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900"><?php echo date('g:i A', strtotime($route['arrival_time'])); ?></div>
-                                <div class="text-xs text-gray-500">Duration: <?php echo $duration_text; ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900"><?php echo $days_display; ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900"><?php echo number_format($route['distance'], 1); ?> km</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$<?php echo number_format($route['base_price'], 2); ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <?php if(isset($_SESSION['user_id'])): ?>
-                                <a href="#" class="text-blue-600 hover:text-blue-900 inline-flex items-center" 
-                                   onclick="showBookingModal(<?php echo $route['schedule_id']; ?>)">
-                                    <i class="fas fa-ticket-alt mr-1"></i> Book
-                                </a>
-                                <?php else: ?>
-                                <a href="login.php?redirect=routes" class="text-blue-600 hover:text-blue-900 inline-flex items-center">
-                                    <i class="fas fa-sign-in-alt mr-1"></i> Login to Book
-                                </a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
+                            <tr class="route-card">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                                    <?php echo htmlspecialchars($route['origin']); ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                                    <?php echo htmlspecialchars($route['destination']); ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    <?php echo date('g:i A', strtotime($route['departure_time'])); ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    <?php echo date('g:i A', strtotime($route['arrival_time'])); ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    <?php echo $days_formatted; ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock text-red-500 mr-2"></i>
+                                        <?php echo $duration_text; ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-500">
+                                    $<?php echo number_format($route['base_price'], 2); ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <a href="booking.php?schedule_id=<?php echo $route['schedule_id']; ?>&travel_date=<?php echo date('Y-m-d'); ?>" class="inline-flex items-center px-3 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition duration-300">
+                                        <i class="fas fa-ticket-alt mr-2"></i> Book Now
+                                    </a>
+                                </td>
+                            </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
-        <?php elseif(!$search_performed): ?>
-            <div class="text-center py-8">
-                <p class="text-gray-500">Use the search form above to find routes between specific cities.</p>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-8">
-                <p class="text-gray-500">No routes found for your search criteria. Please try different locations.</p>
+        <?php elseif($search_performed): ?>
+            <div class="bg-gray-800 text-center py-16 rounded-lg border border-gray-700">
+                <div class="text-red-500 text-5xl mb-4">
+                    <i class="fas fa-route"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-2">No routes found</h3>
+                <p class="text-gray-400 mb-6 max-w-md mx-auto">We couldn't find any routes matching your search criteria. Please try a different origin or destination.</p>
+                <a href="routes.php" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300">
+                    <i class="fas fa-search mr-2"></i> New Search
+                </a>
             </div>
         <?php endif; ?>
     </div>
 
-    <!-- Booking Modal -->
-    <div id="bookingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div class="px-6 py-4 border-b">
-                <h3 class="text-xl font-semibold text-gray-900">Book Ticket</h3>
-            </div>
-            <div class="p-6">
-                <form action="booking.php" method="GET">
-                    <input type="hidden" id="schedule_id" name="schedule_id">
-                    
-                    <div class="mb-4">
-                        <label for="travel_date" class="block text-gray-700 text-sm font-bold mb-2">Select Travel Date</label>
-                        <input type="date" id="travel_date" name="travel_date" min="<?php echo date('Y-m-d'); ?>" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+    <!-- Popular Destinations -->
+    <section class="py-12 bg-black">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-white mb-2 text-center">Popular Destinations</h2>
+            <p class="text-center text-gray-400 mb-10">Explore some of our most requested locations</p>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="relative group overflow-hidden rounded-lg h-64 route-card">
+                    <img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="New York" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-xl font-bold text-white mb-1">New York</h3>
+                        <p class="text-gray-300 text-sm mb-3">Experience the Big Apple</p>
+                        <a href="#" class="inline-flex items-center text-white text-sm">
+                            <span class="mr-2">View Routes</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
-                    
-                    <div class="flex items-center justify-end pt-4 border-t">
-                        <button type="button" onclick="hideBookingModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2 hover:bg-gray-300">Cancel</button>
-                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Proceed to Booking</button>
+                </div>
+                
+                <div class="relative group overflow-hidden rounded-lg h-64 route-card">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Chicago" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-xl font-bold text-white mb-1">Chicago</h3>
+                        <p class="text-gray-300 text-sm mb-3">Windy City Adventures</p>
+                        <a href="#" class="inline-flex items-center text-white text-sm">
+                            <span class="mr-2">View Routes</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
-                </form>
+                </div>
+                
+                <div class="relative group overflow-hidden rounded-lg h-64 route-card">
+                    <img src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Los Angeles" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-xl font-bold text-white mb-1">Los Angeles</h3>
+                        <p class="text-gray-300 text-sm mb-3">City of Angels</p>
+                        <a href="#" class="inline-flex items-center text-white text-sm">
+                            <span class="mr-2">View Routes</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="relative group overflow-hidden rounded-lg h-64 route-card">
+                    <img src="https://images.unsplash.com/photo-1574555059045-3bc478721f0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Boston" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-xl font-bold text-white mb-1">Boston</h3>
+                        <p class="text-gray-300 text-sm mb-3">Historic New England</p>
+                        <a href="#" class="inline-flex items-center text-white text-sm">
+                            <span class="mr-2">View Routes</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-10 mt-auto">
+    <footer class="bg-black text-white py-12">
         <div class="container mx-auto px-4">
             <div class="grid md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="text-xl font-semibold mb-4">FelixBus</h3>
-                    <p class="mb-4">Providing comfortable and reliable bus services.</p>
+                    <h3 class="text-xl font-semibold mb-4">Felix<span class="text-red-600">Bus</span></h3>
+                    <p class="mb-4 text-gray-400">Redefining luxury travel with comfort, reliability, and exceptional service.</p>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-white hover:text-blue-200"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white hover:text-blue-200"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white hover:text-blue-200"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-red-500 transition duration-300"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-red-500 transition duration-300"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-red-500 transition duration-300"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-red-500 transition duration-300"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
                 <div>
                     <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="routes.php" class="hover:text-blue-200">Routes</a></li>
-                        <li><a href="timetables.php" class="hover:text-blue-200">Timetables</a></li>
-                        <li><a href="prices.php" class="hover:text-blue-200">Prices</a></li>
-                        <li><a href="contact.php" class="hover:text-blue-200">Contact Us</a></li>
+                        <li><a href="routes.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
+                        <li><a href="timetables.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
+                        <li><a href="prices.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
+                        <li><a href="contact.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Terms & Conditions</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Privacy Policy</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-xl font-semibold mb-4">Contact Information</h3>
-                    <p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i> 123 Bus Station Road, City</p>
-                    <p class="mb-2"><i class="fas fa-phone mr-2"></i> (123) 456-7890</p>
-                    <p class="mb-2"><i class="fas fa-envelope mr-2"></i> info@felixbus.com</p>
-                    <p><i class="fas fa-clock mr-2"></i> Mon-Fri: 8:00 AM - 8:00 PM</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-red-500"></i>
+                            <span class="text-gray-400">123 Transport Avenue, Downtown<br>Business District, 10001</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-3 text-red-500"></i>
+                            <span class="text-gray-400">(123) 456-7890</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-3 text-red-500"></i>
+                            <span class="text-gray-400">info@felixbus.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-clock mr-3 text-red-500"></i>
+                            <span class="text-gray-400">Mon-Sun: 8:00 AM - 10:00 PM</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="mt-8 pt-6 border-t border-blue-700 text-center">
-                <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
+            <div class="mt-12 pt-8 border-t border-gray-800 text-center">
+                <p class="text-gray-500">&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -365,16 +520,6 @@ if (!$search_performed && empty($error_message)) {
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
-        
-        // Booking modal functions
-        function showBookingModal(scheduleId) {
-            document.getElementById('schedule_id').value = scheduleId;
-            document.getElementById('bookingModal').classList.remove('hidden');
-        }
-        
-        function hideBookingModal() {
-            document.getElementById('bookingModal').classList.add('hidden');
-        }
     </script>
 </body>
 </html> 

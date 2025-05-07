@@ -12,6 +12,27 @@ if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
 $conn = connectDatabase();
 $user_id = $_SESSION['user_id'];
 
+// Get wallet information and ensure it exists
+$wallet_query = "SELECT id, balance FROM wallets WHERE user_id = $user_id";
+$wallet_result = $conn->query($wallet_query);
+
+// Check if wallet exists, if not create one
+if($wallet_result->num_rows == 0) {
+    // Create a wallet for the user
+    $create_wallet_query = "INSERT INTO wallets (user_id, balance) VALUES ($user_id, 0.00)";
+    if($conn->query($create_wallet_query) === TRUE) {
+        // Fetch the newly created wallet
+        $wallet_query = "SELECT id, balance FROM wallets WHERE user_id = $user_id";
+        $wallet_result = $conn->query($wallet_query);
+    } else {
+        $error_message = "Error creating wallet: " . $conn->error;
+    }
+}
+
+$wallet = $wallet_result->fetch_assoc();
+$wallet_id = $wallet['id'];
+$current_balance = $wallet['balance'];
+
 // Process deposit/withdrawal
 $success_message = '';
 $error_message = '';
@@ -19,13 +40,6 @@ $error_message = '';
 if($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
     $amount = floatval($_POST['amount'] ?? 0);
-    
-    // Get wallet id
-    $wallet_query = "SELECT id, balance FROM wallets WHERE user_id = $user_id";
-    $wallet_result = $conn->query($wallet_query);
-    $wallet = $wallet_result->fetch_assoc();
-    $wallet_id = $wallet['id'];
-    $current_balance = $wallet['balance'];
     
     if($action === 'deposit' && $amount > 0) {
         // Add funds to wallet
@@ -77,7 +91,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Get updated wallet balance
+// Get updated wallet balance after transactions
 $wallet_query = "SELECT balance FROM wallets WHERE user_id = $user_id";
 $wallet_result = $conn->query($wallet_query);
 $wallet = $wallet_result->fetch_assoc();
@@ -98,6 +112,7 @@ $transactions_result = $conn->query($transactions_query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wallet - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -114,12 +129,19 @@ $transactions_result = $conn->query($transactions_query);
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="relative group">
-                    <button class="flex items-center space-x-1">
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open" class="flex items-center space-x-1">
                         <span>My Account</span>
-                        <i class="fas fa-chevron-down text-xs"></i>
+                        <i class="fas fa-chevron-down text-xs" :class="{ 'transform rotate-180': open }"></i>
                     </button>
-                    <div class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20 hidden group-hover:block">
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
                         <a href="dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
                         <a href="tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
                         <a href="wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>

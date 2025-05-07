@@ -35,12 +35,30 @@ $tickets_query = "SELECT COUNT(*) as total FROM tickets WHERE travel_date = '$to
 $tickets_result = $conn->query($tickets_query);
 $today_tickets = $tickets_result->fetch_assoc()['total'];
 
+// Get system statistics
+$stats_query = "SELECT 
+                (SELECT COUNT(*) FROM users WHERE user_type = 'client') as total_clients,
+                (SELECT COUNT(*) FROM tickets WHERE status = 'active') as active_tickets,
+                (SELECT COUNT(*) FROM routes) as total_routes,
+                (SELECT SUM(balance) FROM wallets JOIN users ON wallets.user_id = users.id WHERE users.user_type = 'client') as total_client_balances";
+$stats_result = $conn->query($stats_query);
+$stats = $stats_result->fetch_assoc();
+
+// Get company wallet balance
+$company_wallet_query = "SELECT w.balance 
+                         FROM wallets w 
+                         JOIN users u ON w.user_id = u.id 
+                         WHERE u.username = 'felixbus'";
+$company_wallet_result = $conn->query($company_wallet_query);
+$company_wallet_balance = ($company_wallet_result && $company_wallet_result->num_rows > 0) ? 
+                          $company_wallet_result->fetch_assoc()['balance'] : 0;
+
 // Recent tickets (limited to 5)
-$recent_tickets_query = "SELECT t.*, u.username, r.origin, r.destination, s.departure_time, s.arrival_time 
+$recent_tickets_query = "SELECT t.*, u.username, r.origin, r.destination, s.departure_time 
                         FROM tickets t 
-                        JOIN users u ON t.user_id = u.id
+                        JOIN users u ON t.user_id = u.id 
                         JOIN schedules s ON t.schedule_id = s.id 
-                        JOIN routes r ON s.route_id = r.id 
+                        JOIN routes r ON s.route_id = r.id
                         ORDER BY t.purchased_at DESC LIMIT 5";
 $recent_tickets_result = $conn->query($recent_tickets_query);
 
@@ -88,7 +106,13 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                 <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
+                <a href="manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-wallet mr-3"></i> Manage Wallets
+                </a>
                 <?php if($is_admin): ?>
+                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-building mr-3"></i> Company Wallet
+                </a>
                 <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
@@ -125,44 +149,48 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
             <!-- Dashboard Content -->
             <main class="container mx-auto px-4 py-8">
                 <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white rounded-lg shadow-sm p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-800">Total Users</h2>
-                            <span class="text-blue-600 text-2xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Total Clients</h3>
+                            <div class="text-3xl text-blue-600">
                                 <i class="fas fa-users"></i>
-                            </span>
+                            </div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800"><?php echo $total_users; ?></p>
-                        <a href="users.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-block mt-4">
-                            View all users <i class="fas fa-arrow-right ml-1"></i>
-                        </a>
+                        <p class="text-3xl font-bold"><?php echo number_format($stats['total_clients']); ?></p>
                     </div>
                     
                     <div class="bg-white rounded-lg shadow-sm p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-800">Active Routes</h2>
-                            <span class="text-blue-600 text-2xl">
-                                <i class="fas fa-route"></i>
-                            </span>
-                        </div>
-                        <p class="text-3xl font-bold text-gray-800"><?php echo $total_routes; ?></p>
-                        <a href="routes.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-block mt-4">
-                            Manage routes <i class="fas fa-arrow-right ml-1"></i>
-                        </a>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-800">Today's Tickets</h2>
-                            <span class="text-blue-600 text-2xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Active Tickets</h3>
+                            <div class="text-3xl text-green-600">
                                 <i class="fas fa-ticket-alt"></i>
-                            </span>
+                            </div>
                         </div>
-                        <p class="text-3xl font-bold text-gray-800"><?php echo $today_tickets; ?></p>
-                        <a href="tickets.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-block mt-4">
-                            View all tickets <i class="fas fa-arrow-right ml-1"></i>
-                        </a>
+                        <p class="text-3xl font-bold"><?php echo number_format($stats['active_tickets']); ?></p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Total Routes</h3>
+                            <div class="text-3xl text-purple-600">
+                                <i class="fas fa-route"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold"><?php echo number_format($stats['total_routes']); ?></p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Company Wallet</h3>
+                            <div class="text-3xl text-blue-600">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold">$<?php echo number_format($company_wallet_balance, 2); ?></p>
+                        <?php if($is_admin): ?>
+                        <a href="company_wallet.php" class="text-blue-600 hover:text-blue-800 text-sm">View Details</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 

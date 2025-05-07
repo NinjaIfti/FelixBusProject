@@ -40,13 +40,14 @@ if(empty($schedule_id) || empty($travel_date)) {
 }
 
 // Get schedule details
-$schedule_query = "SELECT s.*, r.origin, r.destination, r.base_price, r.distance 
+$schedule_query = "SELECT s.*, r.origin, r.destination, r.base_price, r.distance, r.capacity 
                   FROM schedules s 
                   JOIN routes r ON s.route_id = r.id 
                   WHERE s.id = $schedule_id";
 $schedule_result = $conn->query($schedule_query);
 
 if(!$schedule_result || $schedule_result->num_rows == 0) {
+    $_SESSION['error_message'] = "Invalid schedule selected.";
     header("Location: routes.php");
     exit;
 }
@@ -60,12 +61,18 @@ $booked_seats_query = "SELECT COUNT(*) as booked_seats
                       AND travel_date = '$travel_date' 
                       AND status != 'cancelled'";
 $booked_seats_result = $conn->query($booked_seats_query);
-$booked_seats = $booked_seats_result->fetch_assoc()['booked_seats'];
 
-$available_seats = $schedule['capacity'] - $booked_seats;
+if(!$booked_seats_result) {
+    $_SESSION['error_message'] = "Error checking seat availability.";
+    header("Location: routes.php");
+    exit;
+}
+
+$booked_seats = $booked_seats_result->fetch_assoc()['booked_seats'];
+$available_seats = isset($schedule['capacity']) ? $schedule['capacity'] - $booked_seats : 50 - $booked_seats;
 
 if($available_seats <= 0) {
-    $_SESSION['error_message'] = "Sorry, this bus is fully booked.";
+    $_SESSION['error_message'] = "Sorry, this bus is fully booked for the selected date.";
     header("Location: routes.php");
     exit;
 }
@@ -73,9 +80,37 @@ if($available_seats <= 0) {
 // Get user's wallet balance
 $wallet_query = "SELECT id, balance FROM wallets WHERE user_id = $user_id";
 $wallet_result = $conn->query($wallet_query);
+
+// Check if wallet exists, if not create one
+if($wallet_result->num_rows == 0) {
+    // Create a wallet for the user
+    $create_wallet_query = "INSERT INTO wallets (user_id, balance) VALUES ($user_id, 0.00)";
+    if($conn->query($create_wallet_query) === TRUE) {
+        // Fetch the newly created wallet
+        $wallet_query = "SELECT id, balance FROM wallets WHERE user_id = $user_id";
+        $wallet_result = $conn->query($wallet_query);
+    } else {
+        $error_message = "Error creating wallet: " . $conn->error;
+    }
+}
+
 $wallet = $wallet_result->fetch_assoc();
 $wallet_id = $wallet['id'];
 $balance = $wallet['balance'];
+
+// Get the FelixBus company wallet
+$company_wallet_query = "SELECT w.id, w.balance FROM wallets w 
+                         JOIN users u ON w.user_id = u.id 
+                         WHERE u.username = 'felixbus'";
+$company_wallet_result = $conn->query($company_wallet_query);
+
+if(!$company_wallet_result || $company_wallet_result->num_rows == 0) {
+    error_log("FelixBus company wallet not found. Please run the database setup script.");
+    $company_wallet_id = 0;
+} else {
+    $company_wallet = $company_wallet_result->fetch_assoc();
+    $company_wallet_id = $company_wallet['id'];
+}
 
 // Process booking
 $success_message = '';
@@ -85,49 +120,106 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
     // Check if user has enough balance
     if($balance < $schedule['base_price']) {
         $error_message = "Insufficient funds in your wallet. Please add funds before booking.";
+        
+        // Log the error for reference
+        error_log("Booking failed: Insufficient funds for user $user_id. Balance: $balance, Price: {$schedule['base_price']}");
     } else {
-        // Generate a unique ticket number
-        $ticket_number = 'TIX' . time() . rand(1000, 9999);
+        // Double-check seat availability before booking
+        $booked_seats_query = "SELECT COUNT(*) as booked_seats 
+                             FROM tickets 
+                             WHERE schedule_id = $schedule_id 
+                             AND travel_date = '$travel_date' 
+                             AND status != 'cancelled'";
+        $booked_seats_result = $conn->query($booked_seats_query);
         
-        // Begin transaction
-        $conn->begin_transaction();
-        
-        try {
-            // Create ticket
-            $create_ticket = "INSERT INTO tickets (user_id, schedule_id, travel_date, ticket_number, price, status, purchased_at, purchased_by) 
-                             VALUES ($user_id, $schedule_id, '$travel_date', '$ticket_number', {$schedule['base_price']}, 'active', NOW(), $user_id)";
-            
-            if($conn->query($create_ticket) === TRUE) {
-                $ticket_id = $conn->insert_id;
-                
-                // Deduct from wallet
-                $update_wallet = "UPDATE wallets SET balance = balance - {$schedule['base_price']} WHERE id = $wallet_id";
-                
-                if($conn->query($update_wallet) === TRUE) {
-                    // Log transaction
-                    $transaction_type = 'purchase';
-                    $reference = "Ticket #$ticket_number";
-                    
-                    $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                       VALUES ($wallet_id, {$schedule['base_price']}, '$transaction_type', '$reference')";
-                    
-                    if($conn->query($log_transaction) === TRUE) {
-                        // Commit transaction
-                        $conn->commit();
-                        $success_message = "Ticket booked successfully! Your ticket number is $ticket_number.";
-                    } else {
-                        throw new Exception("Error logging transaction: " . $conn->error);
-                    }
-                } else {
-                    throw new Exception("Error updating wallet: " . $conn->error);
-                }
+        if(!$booked_seats_result) {
+            $error_message = "Database error when checking seat availability: " . $conn->error;
+            error_log("Booking DB Error: " . $conn->error);
+        } else {
+            $booked_seats = $booked_seats_result->fetch_assoc()['booked_seats'];
+            $available_seats = isset($schedule['capacity']) ? $schedule['capacity'] - $booked_seats : 50 - $booked_seats;
+
+            if($available_seats <= 0) {
+                $error_message = "Sorry, this bus is now fully booked. Please select another bus or date.";
+                error_log("Booking failed: No available seats for schedule $schedule_id on $travel_date");
             } else {
-                throw new Exception("Error creating ticket: " . $conn->error);
+                // Generate a unique ticket number
+                $ticket_number = 'TIX' . time() . rand(1000, 9999);
+                
+                // Begin transaction
+                $conn->begin_transaction();
+                
+                try {
+                    // Debug logging
+                    error_log("Starting ticket booking transaction for user $user_id, schedule $schedule_id, date $travel_date");
+                    
+                    // Create ticket
+                    $create_ticket = "INSERT INTO tickets (user_id, schedule_id, travel_date, ticket_number, price, status, purchased_at, purchased_by) 
+                                    VALUES ($user_id, $schedule_id, '$travel_date', '$ticket_number', {$schedule['base_price']}, 'active', NOW(), $user_id)";
+                    
+                    if($conn->query($create_ticket) === TRUE) {
+                        $ticket_id = $conn->insert_id;
+                        error_log("Ticket created with ID: $ticket_id");
+                        
+                        // Deduct from user wallet
+                        $update_wallet = "UPDATE wallets SET balance = balance - {$schedule['base_price']} WHERE id = $wallet_id";
+                        
+                        if($conn->query($update_wallet) === TRUE) {
+                            error_log("User wallet updated, deducted {$schedule['base_price']}");
+                            
+                            // Add to FelixBus company wallet
+                            if($company_wallet_id > 0) {
+                                $update_company_wallet = "UPDATE wallets SET balance = balance + {$schedule['base_price']} WHERE id = $company_wallet_id";
+                                if(!$conn->query($update_company_wallet)) {
+                                    throw new Exception("Error updating company wallet: " . $conn->error);
+                                }
+                                error_log("Company wallet updated, added {$schedule['base_price']}");
+                            }
+                            
+                            // Log transaction for user
+                            $transaction_type = 'purchase';
+                            $reference = "Ticket #$ticket_number";
+                            
+                            $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
+                                            VALUES ($wallet_id, {$schedule['base_price']}, '$transaction_type', '$reference')";
+                            
+                            if($conn->query($log_transaction) === TRUE) {
+                                // Log transaction for company
+                                if($company_wallet_id > 0) {
+                                    $company_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
+                                                          VALUES ($company_wallet_id, {$schedule['base_price']}, 'deposit', 'Payment for $reference')";
+                                    if(!$conn->query($company_transaction)) {
+                                        throw new Exception("Error logging company transaction: " . $conn->error);
+                                    }
+                                }
+                                
+                                // Commit transaction
+                                $conn->commit();
+                                error_log("Transaction complete, ticket booked successfully");
+                                $success_message = "Ticket booked successfully! Your ticket number is $ticket_number.";
+                                
+                                // Reload wallet balance
+                                $wallet_query = "SELECT balance FROM wallets WHERE id = $wallet_id";
+                                $wallet_result = $conn->query($wallet_query);
+                                if($wallet_result && $wallet_result->num_rows > 0) {
+                                    $balance = $wallet_result->fetch_assoc()['balance'];
+                                }
+                            } else {
+                                throw new Exception("Error logging transaction: " . $conn->error);
+                            }
+                        } else {
+                            throw new Exception("Error updating wallet: " . $conn->error);
+                        }
+                    } else {
+                        throw new Exception("Error creating ticket: " . $conn->error);
+                    }
+                } catch (Exception $e) {
+                    // Rollback transaction on error
+                    $conn->rollback();
+                    $error_message = $e->getMessage();
+                    error_log("Booking transaction error: " . $e->getMessage());
+                }
             }
-        } catch (Exception $e) {
-            // Rollback transaction on error
-            $conn->rollback();
-            $error_message = $e->getMessage();
         }
     }
 }
@@ -149,6 +241,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Ticket - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -165,12 +258,19 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="relative group">
-                    <button class="flex items-center space-x-1">
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open" class="flex items-center space-x-1">
                         <span>My Account</span>
-                        <i class="fas fa-chevron-down text-xs"></i>
+                        <i class="fas fa-chevron-down text-xs" :class="{ 'transform rotate-180': open }"></i>
                     </button>
-                    <div class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20 hidden group-hover:block">
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
                         <?php if($_SESSION['user_type'] === 'client'): ?>
                             <a href="client/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
                             <a href="client/tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>

@@ -200,9 +200,17 @@ $routes_result = $conn->query($routes_query);
                 <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
+                <a href="manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-wallet mr-3"></i> Manage Wallets
+                </a>
+                <?php if($is_admin): ?>
+                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                    <i class="fas fa-building mr-3"></i> Company Wallet
+                </a>
                 <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
+                <?php endif; ?>
                 <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
                     <i class="fas fa-home mr-3"></i> Main Website
                 </a>

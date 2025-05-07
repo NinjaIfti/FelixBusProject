@@ -185,6 +185,32 @@ if ($conn->query($client_sql) === TRUE) {
     echo "Error creating demo client: " . $conn->error . "<br>";
 }
 
+// Create FelixBus company account
+$company_password = password_hash('felixbus123', PASSWORD_DEFAULT);
+$company_sql = "INSERT INTO users (username, password, email, first_name, last_name, user_type) 
+                VALUES ('felixbus', '$company_password', 'company@felixbus.com', 'FelixBus', 'Company', 'admin')
+                ON DUPLICATE KEY UPDATE id=id";
+
+if ($conn->query($company_sql) === TRUE) {
+    echo "FelixBus company account created successfully<br>";
+    
+    // Get company user id
+    $company_id = $conn->insert_id ?: $conn->query("SELECT id FROM users WHERE username='felixbus'")->fetch_assoc()['id'];
+    
+    // Create wallet for company with initial balance
+    $company_wallet_sql = "INSERT INTO wallets (user_id, balance) 
+                          VALUES ('$company_id', 10000.00)
+                          ON DUPLICATE KEY UPDATE id=id";
+    
+    if ($conn->query($company_wallet_sql) === TRUE) {
+        echo "FelixBus company wallet created successfully<br>";
+    } else {
+        echo "Error creating company wallet: " . $conn->error . "<br>";
+    }
+} else {
+    echo "Error creating FelixBus company account: " . $conn->error . "<br>";
+}
+
 $conn->close();
 echo "Database setup completed.";
 ?> 
