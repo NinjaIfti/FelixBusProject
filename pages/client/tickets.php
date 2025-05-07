@@ -31,18 +31,28 @@ $tickets_result = $conn->query($tickets_query);
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-2xl font-bold">FelixBus</a>
-                <div class="hidden md:flex space-x-4">
-                    <a href="../routes.php" class="hover:text-blue-200">Routes</a>
-                    <a href="../timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="../prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="../contact.php" class="hover:text-blue-200">Contact</a>
+                <a href="../index.php" class="text-2xl font-bold flex items-center">
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
+                    <span>Felix<span class="text-red-600">Bus</span></span>
+                </a>
+                <div class="hidden md:flex space-x-4 ml-8">
+                    <a href="../routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="../timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="../prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="../contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -58,12 +68,12 @@ $tickets_result = $conn->query($tickets_query);
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
-                        <a href="dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
-                        <a href="tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
-                        <a href="wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>
-                        <a href="../profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
-                        <a href="../logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
+                         class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
+                        <a href="dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="../profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="../logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -71,7 +81,7 @@ $tickets_result = $conn->query($tickets_query);
     </nav>
 
     <!-- Page Header -->
-    <div class="bg-blue-700 py-8 text-white">
+    <div class="bg-red-700 py-8 text-white">
         <div class="container mx-auto px-4">
             <h1 class="text-3xl font-bold mb-2">My Tickets</h1>
             <p class="text-lg">View and manage your purchased tickets.</p>
@@ -79,35 +89,35 @@ $tickets_result = $conn->query($tickets_query);
     </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Actions Bar -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <a href="dashboard.php" class="text-blue-600 hover:text-blue-800">
+                <a href="dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             </div>
             <div>
-                <a href="../routes.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <a href="../routes.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
                     <i class="fas fa-search mr-2"></i> Find New Routes
                 </a>
             </div>
         </div>
 
         <!-- Tickets List -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-6">Your Ticket History</h2>
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 card">
+            <h2 class="text-xl font-semibold text-white mb-6">Your Ticket History</h2>
             
             <?php if($tickets_result && $tickets_result->num_rows > 0): ?>
                 <div class="grid grid-cols-1 gap-6">
                     <?php while($ticket = $tickets_result->fetch_assoc()): ?>
-                        <div class="border rounded-lg overflow-hidden shadow-sm">
-                            <div class="grid md:grid-cols-5 divide-x divide-gray-200">
+                        <div class="border border-gray-700 rounded-lg overflow-hidden shadow-sm bg-gray-900">
+                            <div class="grid md:grid-cols-5 divide-x divide-gray-800">
                                 <!-- Ticket Status -->
                                 <div class="md:col-span-1 p-4
                                 <?php 
-                                    echo $ticket['status'] === 'active' ? 'bg-green-50' : 
-                                        ($ticket['status'] === 'used' ? 'bg-gray-50' : 'bg-red-50'); 
+                                    echo $ticket['status'] === 'active' ? 'bg-green-900' : 
+                                        ($ticket['status'] === 'used' ? 'bg-gray-800' : 'bg-red-900'); 
                                 ?>">
                                     <div class="flex flex-col h-full justify-between">
                                         <div>
@@ -118,10 +128,10 @@ $tickets_result = $conn->query($tickets_query);
                                             ?>">
                                                 <?php echo ucfirst($ticket['status']); ?>
                                             </span>
-                                            <p class="mt-2 text-sm text-gray-600">Ticket #<?php echo htmlspecialchars($ticket['ticket_number']); ?></p>
+                                            <p class="mt-2 text-sm text-gray-400">Ticket #<?php echo htmlspecialchars($ticket['ticket_number']); ?></p>
                                         </div>
                                         <div class="mt-4">
-                                            <p class="text-sm text-gray-600">Purchased:<br><?php echo date('M j, Y', strtotime($ticket['purchased_at'])); ?></p>
+                                            <p class="text-sm text-gray-400">Purchased:<br><?php echo date('M j, Y', strtotime($ticket['purchased_at'])); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -130,19 +140,19 @@ $tickets_result = $conn->query($tickets_query);
                                 <div class="md:col-span-4 p-4">
                                     <div class="grid md:grid-cols-2 gap-4">
                                         <div>
-                                            <h3 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($ticket['origin']); ?> to <?php echo htmlspecialchars($ticket['destination']); ?></h3>
+                                            <h3 class="text-lg font-semibold text-white"><?php echo htmlspecialchars($ticket['origin']); ?> to <?php echo htmlspecialchars($ticket['destination']); ?></h3>
                                             <div class="mt-2 space-y-1">
-                                                <p class="text-gray-600"><i class="far fa-calendar-alt mr-2"></i> <?php echo date('l, F j, Y', strtotime($ticket['travel_date'])); ?></p>
-                                                <p class="text-gray-600"><i class="far fa-clock mr-2"></i> <?php echo date('g:i A', strtotime($ticket['departure_time'])); ?> - <?php echo date('g:i A', strtotime($ticket['arrival_time'])); ?></p>
-                                                <p class="text-gray-600"><i class="fas fa-money-bill-wave mr-2"></i> $<?php echo number_format($ticket['price'], 2); ?></p>
+                                                <p class="text-gray-400"><i class="far fa-calendar-alt mr-2"></i> <?php echo date('l, F j, Y', strtotime($ticket['travel_date'])); ?></p>
+                                                <p class="text-gray-400"><i class="far fa-clock mr-2"></i> <?php echo date('g:i A', strtotime($ticket['departure_time'])); ?> - <?php echo date('g:i A', strtotime($ticket['arrival_time'])); ?></p>
+                                                <p class="text-gray-400"><i class="fas fa-money-bill-wave mr-2"></i> $<?php echo number_format($ticket['price'], 2); ?></p>
                                             </div>
                                         </div>
                                         
                                         <div class="flex items-center justify-end">
                                             <?php if($ticket['status'] === 'active'): ?>
                                                 <div class="text-center">
-                                                    <p class="text-sm text-gray-600 mb-2">Show this QR code at boarding</p>
-                                                    <div class="inline-block bg-gray-200 p-2 rounded">
+                                                    <p class="text-sm text-gray-400 mb-2">Show this QR code at boarding</p>
+                                                    <div class="inline-block bg-gray-700 p-2 rounded">
                                                         <!-- Placeholder for a QR code -->
                                                         <div class="w-24 h-24 bg-white flex items-center justify-center">
                                                             <p class="text-xs text-gray-500">QR Code</p>
@@ -154,11 +164,11 @@ $tickets_result = $conn->query($tickets_query);
                                     </div>
                                     
                                     <?php if($ticket['status'] === 'active'): ?>
-                                    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
-                                        <a href="ticket_details.php?id=<?php echo $ticket['id']; ?>" class="text-blue-600 hover:text-blue-800 mr-4">
+                                    <div class="mt-4 pt-4 border-t border-gray-800 flex justify-end">
+                                        <a href="ticket_details.php?id=<?php echo $ticket['id']; ?>" class="text-red-500 hover:text-red-400 mr-4">
                                             <i class="fas fa-info-circle mr-1"></i> Details
                                         </a>
-                                        <a href="#" onclick="window.print()" class="text-blue-600 hover:text-blue-800">
+                                        <a href="#" onclick="window.print()" class="text-red-500 hover:text-red-400">
                                             <i class="fas fa-print mr-1"></i> Print Ticket
                                         </a>
                                     </div>
@@ -173,9 +183,9 @@ $tickets_result = $conn->query($tickets_query);
                     <div class="text-gray-400 text-5xl mb-4">
                         <i class="fas fa-ticket-alt"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">No Tickets Found</h3>
-                    <p class="text-gray-600 mb-6">You haven't purchased any tickets yet.</p>
-                    <a href="../routes.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                    <h3 class="text-xl font-semibold text-white mb-2">No Tickets Found</h3>
+                    <p class="text-gray-400 mb-6">You haven't purchased any tickets yet.</p>
+                    <a href="../routes.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
                         <i class="fas fa-search mr-2"></i> Find Routes and Book Tickets
                     </a>
                 </div>
@@ -184,7 +194,7 @@ $tickets_result = $conn->query($tickets_query);
     </div>
 
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-8 mt-12">
+    <footer class="bg-black text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
             <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
         </div>

@@ -87,19 +87,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="index.php" class="text-2xl font-bold">FelixBus</a>
-                <div class="hidden md:flex space-x-4">
-                    <a href="routes.php" class="hover:text-blue-200">Routes</a>
-                    <a href="timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="contact.php" class="hover:text-blue-200">Contact</a>
+                <a href="index.php" class="text-2xl font-bold flex items-center">
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
+                    <span>Felix<span class="text-red-600">Bus</span></span>
+                </a>
+                <div class="hidden md:flex space-x-4 ml-8">
+                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -108,16 +119,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span>My Account</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20 hidden group-hover:block">
+                    <div class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20 hidden group-hover:block">
                         <?php if($_SESSION['user_type'] === 'client'): ?>
-                            <a href="client/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
-                            <a href="client/tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
-                            <a href="client/wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>
+                            <a href="client/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                            <a href="client/tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                            <a href="client/wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
                         <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                            <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Admin Panel</a>
+                            <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
                         <?php endif; ?>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
-                        <a href="logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
+                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -125,7 +136,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     </nav>
 
     <!-- Page Header -->
-    <div class="bg-blue-700 py-8 text-white">
+    <div class="bg-red-700 py-8 text-white">
         <div class="container mx-auto px-4">
             <h1 class="text-3xl font-bold mb-2">My Profile</h1>
             <p class="text-lg">View and edit your personal information.</p>
@@ -133,15 +144,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Navigation Links -->
         <div class="mb-6">
             <?php if($_SESSION['user_type'] === 'client'): ?>
-                <a href="client/dashboard.php" class="text-blue-600 hover:text-blue-800">
+                <a href="client/dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                <a href="admin/dashboard.php" class="text-blue-600 hover:text-blue-800">
+                <a href="admin/dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             <?php endif; ?>
@@ -162,27 +173,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="grid md:grid-cols-3 gap-8">
             <!-- Account Overview -->
             <div class="md:col-span-1">
-                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 card border border-gray-700">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">Account Overview</h2>
+                        <h2 class="text-xl font-semibold text-white">Account Overview</h2>
                     </div>
                     <div class="text-center mb-4">
-                        <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full mx-auto flex items-center justify-center text-4xl">
+                        <div class="w-24 h-24 bg-red-100 text-red-600 rounded-full mx-auto flex items-center justify-center text-4xl">
                             <i class="fas fa-user"></i>
                         </div>
                     </div>
-                    <p class="text-xl font-bold text-center mb-1"><?php echo htmlspecialchars($user['username']); ?></p>
-                    <p class="text-sm text-gray-500 text-center mb-4"><?php echo ucfirst($user['user_type']); ?></p>
-                    <div class="border-t pt-4">
-                        <p class="text-sm text-gray-500">Member since: <?php echo date('F j, Y', strtotime($user['created_at'])); ?></p>
+                    <p class="text-xl font-bold text-center mb-1 text-white"><?php echo htmlspecialchars($user['username']); ?></p>
+                    <p class="text-sm text-gray-400 text-center mb-4"><?php echo ucfirst($user['user_type']); ?></p>
+                    <div class="border-t border-gray-700 pt-4">
+                        <p class="text-sm text-gray-400">Member since: <?php echo date('F j, Y', strtotime($user['created_at'])); ?></p>
                         <?php if($_SESSION['user_type'] === 'client'): ?>
                             <div class="mt-4">
-                                <a href="client/wallet.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                <a href="client/wallet.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
                                     <i class="fas fa-wallet mr-1"></i> Manage Wallet
                                 </a>
                             </div>
                             <div class="mt-2">
-                                <a href="client/tickets.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                <a href="client/tickets.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
                                     <i class="fas fa-ticket-alt mr-1"></i> View My Tickets
                                 </a>
                             </div>
@@ -193,43 +204,43 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             
             <!-- Profile Information -->
             <div class="md:col-span-2">
-                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Personal Information</h2>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 card border border-gray-700">
+                    <h2 class="text-xl font-semibold text-white mb-6">Personal Information</h2>
                     
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                                <input type="text" id="username" value="<?php echo htmlspecialchars($user['username']); ?>" class="w-full px-4 py-2 border rounded-md bg-gray-100" disabled>
+                                <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                                <input type="text" id="username" value="<?php echo htmlspecialchars($user['username']); ?>" class="w-full px-4 py-2 border rounded-md bg-gray-700 text-gray-400" disabled>
                                 <p class="text-xs text-gray-500 mt-1">Username cannot be changed</p>
                             </div>
                             <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                             </div>
                             <div>
-                                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                                <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['first_name']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="first_name" class="block text-sm font-medium text-gray-300 mb-2">First Name</label>
+                                <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['first_name']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                             </div>
                             <div>
-                                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                                <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="last_name" class="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
+                                <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                             </div>
                             <div>
-                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <label for="phone" class="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white">
                             </div>
                             <div>
-                                <label for="user_type" class="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
-                                <input type="text" id="user_type" value="<?php echo ucfirst($user['user_type']); ?>" class="w-full px-4 py-2 border rounded-md bg-gray-100" disabled>
+                                <label for="user_type" class="block text-sm font-medium text-gray-300 mb-2">Account Type</label>
+                                <input type="text" id="user_type" value="<?php echo ucfirst($user['user_type']); ?>" class="w-full px-4 py-2 border rounded-md bg-gray-700 text-gray-400" disabled>
                             </div>
                             <div class="md:col-span-2">
-                                <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                                <textarea id="address" name="address" rows="3" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                                <label for="address" class="block text-sm font-medium text-gray-300 mb-2">Address</label>
+                                <textarea id="address" name="address" rows="3" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
                             </div>
                         </div>
                         <div class="mt-6 text-right">
-                            <button type="submit" name="update_profile" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
+                            <button type="submit" name="update_profile" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md">
                                 Update Profile
                             </button>
                         </div>
@@ -237,27 +248,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 
                 <!-- Change Password -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Change Password</h2>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-md card border border-gray-700">
+                    <h2 class="text-xl font-semibold text-white mb-6">Change Password</h2>
                     
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                         <div class="space-y-4">
                             <div>
-                                <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                                <input type="password" id="current_password" name="current_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="current_password" class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+                                <input type="password" id="current_password" name="current_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                             </div>
                             <div>
-                                <label for="new_password" class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                                <input type="password" id="new_password" name="new_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="new_password" class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                                <input type="password" id="new_password" name="new_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                                 <p class="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
                             </div>
                             <div>
-                                <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                                <input type="password" id="confirm_password" name="confirm_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <label for="confirm_password" class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                                <input type="password" id="confirm_password" name="confirm_password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 bg-gray-900 text-white" required>
                             </div>
                         </div>
                         <div class="mt-6 text-right">
-                            <button type="submit" name="change_password" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
+                            <button type="submit" name="change_password" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md">
                                 Change Password
                             </button>
                         </div>
@@ -268,7 +279,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-8 mt-12">
+    <footer class="bg-black text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
             <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
         </div>

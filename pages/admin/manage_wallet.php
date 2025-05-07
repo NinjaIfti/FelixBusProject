@@ -156,47 +156,54 @@ if($client) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Client Wallet - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
     <!-- Sidebar -->
     <div class="flex flex-1">
-        <div class="bg-blue-800 text-white w-64 py-6 flex-shrink-0 hidden md:block">
+        <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
                 <a href="dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
-                    <i class="fas fa-bus mr-3"></i> FelixBus
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
+                    <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="dashboard.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
-                <a href="users.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <?php if($is_admin): ?>
-                <a href="routes.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <?php endif; ?>
-                <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="manage_wallet.php" class="flex items-center py-3 px-6 bg-blue-700 bg-opacity-60">
+                <a href="manage_wallet.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
-                <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-home mr-3"></i> Main Website
                 </a>
-                <a href="../logout.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60 mt-auto">
+                <a href="../logout.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link mt-auto">
                     <i class="fas fa-sign-out-alt mr-3"></i> Logout
                 </a>
             </nav>
@@ -233,15 +240,14 @@ if($client) {
                 <!-- Client Selection -->
                 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Select Client</h2>
-                    
-                    <form method="GET" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                    <form method="GET" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="clientSelectForm">
                         <div class="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-4">
                             <div class="flex-grow">
                                 <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                                <select id="client_id" name="client_id" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <select id="client_id" name="client_id" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 text-black" required>
                                     <option value="">-- Select a Client --</option>
                                     <?php if($clients_result && $clients_result->num_rows > 0): ?>
-                                        <?php while($client_row = $clients_result->fetch_assoc()): ?>
+                                        <?php $clients_result->data_seek(0); while($client_row = $clients_result->fetch_assoc()): ?>
                                             <option value="<?php echo $client_row['id']; ?>" <?php echo ($client_id == $client_row['id']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($client_row['username']); ?> - 
                                                 <?php echo htmlspecialchars($client_row['first_name'] . ' ' . $client_row['last_name']); ?> 
@@ -250,11 +256,6 @@ if($client) {
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </select>
-                            </div>
-                            <div class="md:flex-shrink-0">
-                                <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
-                                    Select Client
-                                </button>
                             </div>
                         </div>
                     </form>
@@ -426,7 +427,11 @@ if($client) {
     <script>
         // Mobile sidebar toggle
         document.getElementById('sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.bg-blue-800').classList.toggle('hidden');
+            document.querySelector('.bg-black').classList.toggle('hidden');
+        });
+        // Auto-submit client selection form on change
+        document.getElementById('client_id').addEventListener('change', function() {
+            document.getElementById('clientSelectForm').submit();
         });
     </script>
 </body>

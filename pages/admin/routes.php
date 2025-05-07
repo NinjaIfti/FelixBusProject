@@ -11,6 +11,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 // Connect to database
 $conn = connectDatabase();
 $user_id = $_SESSION['user_id'];
+$is_admin = true; // Define is_admin variable since only admins can access this page
 
 // Process actions (create, update, delete routes and schedules)
 $success_message = '';
@@ -176,45 +177,66 @@ $routes_result = $conn->query($routes_query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Route Management - FelixBus</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
     <!-- Sidebar -->
     <div class="flex flex-1">
-        <div class="bg-blue-800 text-white w-64 py-6 flex-shrink-0 hidden md:block">
+        <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
                 <a href="dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
-                    <i class="fas fa-bus mr-3"></i> FelixBus
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span> 
+                    <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="dashboard.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
-                <a href="users.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="routes.php" class="flex items-center py-3 px-6 bg-blue-700 bg-opacity-60">
+                <a href="routes.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
-                <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60">
+                <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-home mr-3"></i> Main Website
                 </a>
-                <a href="../logout.php" class="flex items-center py-3 px-6 hover:bg-blue-700 hover:bg-opacity-60 mt-auto">
+                <a href="../logout.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link mt-auto">
                     <i class="fas fa-sign-out-alt mr-3"></i> Logout
                 </a>
             </nav>
@@ -223,13 +245,13 @@ $routes_result = $conn->query($routes_query);
         <!-- Main Content -->
         <div class="flex-1 overflow-x-hidden overflow-y-auto">
             <!-- Top Navigation -->
-            <header class="bg-white shadow-sm">
+            <header class="bg-gray-800 shadow-md">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div class="flex items-center">
-                        <button id="sidebar-toggle" class="mr-4 text-gray-600 md:hidden">
+                        <button id="sidebar-toggle" class="mr-4 text-gray-300 md:hidden">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <h1 class="text-2xl font-semibold text-gray-800">Route Management</h1>
+                        <h1 class="text-2xl font-semibold text-white">Route Management</h1>
                     </div>
                 </div>
             </header>
@@ -237,13 +259,13 @@ $routes_result = $conn->query($routes_query);
             <!-- Main Content -->
             <main class="container mx-auto px-4 py-8">
                 <?php if($success_message): ?>
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+                    <div class="bg-green-900 border-l-4 border-green-500 text-green-100 p-4 mb-6" role="alert">
                         <p><?php echo $success_message; ?></p>
                     </div>
                 <?php endif; ?>
                 
                 <?php if($error_message): ?>
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+                    <div class="bg-red-900 border-l-4 border-red-500 text-white p-4 mb-6" role="alert">
                         <p><?php echo $error_message; ?></p>
                     </div>
                 <?php endif; ?>
@@ -558,7 +580,7 @@ $routes_result = $conn->query($routes_query);
     <script>
         // Mobile sidebar toggle
         document.getElementById('sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.bg-blue-800').classList.toggle('hidden');
+            document.querySelector('.bg-black').classList.toggle('hidden');
         });
         
         // Modal functions

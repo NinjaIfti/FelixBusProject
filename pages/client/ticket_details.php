@@ -77,18 +77,28 @@ $days_display = implode(', ', $days_text);
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-2xl font-bold">FelixBus</a>
-                <div class="hidden md:flex space-x-4">
-                    <a href="../routes.php" class="hover:text-blue-200">Routes</a>
-                    <a href="../timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="../prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="../contact.php" class="hover:text-blue-200">Contact</a>
+                <a href="../index.php" class="text-2xl font-bold flex items-center">
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
+                    <span>Felix<span class="text-red-600">Bus</span></span>
+                </a>
+                <div class="hidden md:flex space-x-4 ml-8">
+                    <a href="../routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="../timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="../prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="../contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -104,12 +114,12 @@ $days_display = implode(', ', $days_text);
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
-                        <a href="dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
-                        <a href="tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
-                        <a href="wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>
-                        <a href="../profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
-                        <a href="../logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
+                         class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
+                        <a href="dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="../profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="../logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -117,7 +127,7 @@ $days_display = implode(', ', $days_text);
     </nav>
 
     <!-- Page Header -->
-    <div class="bg-blue-700 py-8 text-white">
+    <div class="bg-red-700 py-8 text-white">
         <div class="container mx-auto px-4">
             <h1 class="text-3xl font-bold mb-2">Ticket Details</h1>
             <p class="text-lg">View all information about your ticket</p>
@@ -125,22 +135,22 @@ $days_display = implode(', ', $days_text);
     </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="tickets.php" class="text-blue-600 hover:text-blue-800">
+            <a href="tickets.php" class="text-red-500 hover:text-red-400">
                 <i class="fas fa-arrow-left mr-1"></i> Back to My Tickets
             </a>
         </div>
         
         <!-- Ticket Information -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden card">
             <!-- Ticket Header -->
-            <div class="bg-blue-600 text-white p-6">
+            <div class="bg-red-700 text-white p-6">
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="text-2xl font-bold"><?php echo htmlspecialchars($ticket['origin']); ?> to <?php echo htmlspecialchars($ticket['destination']); ?></h2>
-                        <p class="text-blue-100"><?php echo $formatted_travel_date; ?></p>
+                        <p class="text-red-100"><?php echo $formatted_travel_date; ?></p>
                     </div>
                     <div>
                         <span class="inline-block px-3 py-1 text-sm font-semibold rounded-full
@@ -159,86 +169,86 @@ $days_display = implode(', ', $days_text);
                 <div class="grid md:grid-cols-2 gap-8">
                     <!-- Trip Information -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Trip Information</h3>
+                        <h3 class="text-lg font-semibold text-white mb-4">Trip Information</h3>
                         
                         <div class="space-y-4">
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Ticket Number:</div>
-                                <div class="w-2/3 font-bold"><?php echo htmlspecialchars($ticket['ticket_number']); ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Ticket Number:</div>
+                                <div class="w-2/3 font-bold text-white"><?php echo htmlspecialchars($ticket['ticket_number']); ?></div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Date:</div>
-                                <div class="w-2/3"><?php echo $formatted_travel_date; ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Date:</div>
+                                <div class="w-2/3 text-white"><?php echo $formatted_travel_date; ?></div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Departure:</div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Departure:</div>
                                 <div class="w-2/3">
-                                    <div><?php echo date('g:i A', strtotime($ticket['departure_time'])); ?></div>
-                                    <div class="text-sm text-gray-500"><?php echo htmlspecialchars($ticket['origin']); ?></div>
+                                    <div class="text-white"><?php echo date('g:i A', strtotime($ticket['departure_time'])); ?></div>
+                                    <div class="text-sm text-gray-400"><?php echo htmlspecialchars($ticket['origin']); ?></div>
                                 </div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Arrival:</div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Arrival:</div>
                                 <div class="w-2/3">
-                                    <div><?php echo date('g:i A', strtotime($ticket['arrival_time'])); ?></div>
-                                    <div class="text-sm text-gray-500"><?php echo htmlspecialchars($ticket['destination']); ?></div>
+                                    <div class="text-white"><?php echo date('g:i A', strtotime($ticket['arrival_time'])); ?></div>
+                                    <div class="text-sm text-gray-400"><?php echo htmlspecialchars($ticket['destination']); ?></div>
                                 </div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Duration:</div>
-                                <div class="w-2/3"><?php echo $duration_text; ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Duration:</div>
+                                <div class="w-2/3 text-white"><?php echo $duration_text; ?></div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Distance:</div>
-                                <div class="w-2/3"><?php echo number_format($ticket['distance'], 1); ?> km</div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Distance:</div>
+                                <div class="w-2/3 text-white"><?php echo number_format($ticket['distance'], 1); ?> km</div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Price:</div>
-                                <div class="w-2/3">$<?php echo number_format($ticket['price'], 2); ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Price:</div>
+                                <div class="w-2/3 text-white">$<?php echo number_format($ticket['price'], 2); ?></div>
                             </div>
                             
                             <div class="flex">
-                                <div class="w-1/3 font-medium text-gray-600">Purchase Date:</div>
-                                <div class="w-2/3"><?php echo date('F j, Y, g:i A', strtotime($ticket['purchased_at'])); ?></div>
+                                <div class="w-1/3 font-medium text-gray-400">Purchase Date:</div>
+                                <div class="w-2/3 text-white"><?php echo date('F j, Y, g:i A', strtotime($ticket['purchased_at'])); ?></div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Passenger Information & QR Code -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Passenger Information</h3>
+                        <h3 class="text-lg font-semibold text-white mb-4">Passenger Information</h3>
                         
                         <div class="space-y-4 mb-8">
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Name:</div>
-                                <div class="w-2/3"><?php echo htmlspecialchars($ticket['first_name'] . ' ' . $ticket['last_name']); ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Name:</div>
+                                <div class="w-2/3 text-white"><?php echo htmlspecialchars($ticket['first_name'] . ' ' . $ticket['last_name']); ?></div>
                             </div>
                             
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Email:</div>
-                                <div class="w-2/3"><?php echo htmlspecialchars($ticket['email']); ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Email:</div>
+                                <div class="w-2/3 text-white"><?php echo htmlspecialchars($ticket['email']); ?></div>
                             </div>
                             
                             <?php if(!empty($ticket['phone'])): ?>
-                            <div class="flex border-b border-gray-200 pb-3">
-                                <div class="w-1/3 font-medium text-gray-600">Phone:</div>
-                                <div class="w-2/3"><?php echo htmlspecialchars($ticket['phone']); ?></div>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Phone:</div>
+                                <div class="w-2/3 text-white"><?php echo htmlspecialchars($ticket['phone']); ?></div>
                             </div>
                             <?php endif; ?>
                         </div>
                         
                         <?php if($ticket['status'] === 'active'): ?>
                         <div class="mt-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Boarding Pass</h3>
+                            <h3 class="text-lg font-semibold text-white mb-4">Boarding Pass</h3>
                             
-                            <div class="bg-gray-100 p-4 rounded-lg flex flex-col items-center">
-                                <p class="text-sm text-gray-600 mb-4">Present this QR code at boarding</p>
+                            <div class="bg-gray-700 p-4 rounded-lg flex flex-col items-center">
+                                <p class="text-sm text-gray-400 mb-4">Present this QR code at boarding</p>
                                 <div class="bg-white p-3 rounded-md shadow-md mb-2">
                                     <!-- Placeholder for a QR code -->
                                     <div class="w-32 h-32 flex items-center justify-center">
@@ -254,8 +264,8 @@ $days_display = implode(', ', $days_text);
                 
                 <!-- Action Buttons -->
                 <?php if($ticket['status'] === 'active'): ?>
-                <div class="mt-8 pt-4 border-t border-gray-200 flex justify-end">
-                    <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+                <div class="mt-8 pt-4 border-t border-gray-700 flex justify-end">
+                    <button onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded">
                         <i class="fas fa-print mr-2"></i> Print Ticket
                     </button>
                 </div>
@@ -264,10 +274,10 @@ $days_display = implode(', ', $days_text);
         </div>
         
         <!-- Terms and Conditions -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Terms and Conditions</h3>
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 mt-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Terms and Conditions</h3>
             
-            <div class="text-sm text-gray-600 space-y-2">
+            <div class="text-sm text-gray-400 space-y-2">
                 <p>1. This ticket is valid only for the specified date, route, and time.</p>
                 <p>2. Please arrive at the station at least 30 minutes before the scheduled departure time.</p>
                 <p>3. This ticket is non-transferable and valid identification may be required at boarding.</p>
@@ -280,7 +290,7 @@ $days_display = implode(', ', $days_text);
     </div>
 
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-8 mt-12">
+    <footer class="bg-black text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
             <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
         </div>

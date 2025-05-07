@@ -232,37 +232,79 @@ if (!$search_performed && empty($error_message)) {
                 <div class="grid md:grid-cols-3 gap-4">
                     <div>
                         <label for="origin" class="block text-gray-300 text-sm font-medium mb-2">Origin</label>
-                        <select id="origin" name="origin" class="w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
-                            <option value="">Select origin</option>
+                        <div class="relative custom-select-container">
+                            <div class="custom-select-header w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all flex justify-between items-center cursor-pointer">
+                                <span id="selected-origin-text"><?php echo isset($_POST['origin']) && !empty($_POST['origin']) ? htmlspecialchars($_POST['origin']) : 'Select origin'; ?></span>
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                            <div class="custom-select-dropdown absolute z-50 hidden w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-72 overflow-y-auto">
+                                <div class="sticky top-0 bg-gray-800 p-2 border-b border-gray-700">
+                                    <div class="relative">
+                                        <input type="text" class="origin-search-input w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-white" placeholder="Search origins...">
+                                        <button type="button" class="clear-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="custom-select-options p-1">
+                                    
                             <?php 
                             if($origins_result && $origins_result->num_rows > 0): 
+                                        mysqli_data_seek($origins_result, 0);
                                 while($origin = $origins_result->fetch_assoc()): 
-                            ?>
-                                <option value="<?php echo htmlspecialchars($origin['origin']); ?>" <?php echo isset($_POST['origin']) && $_POST['origin'] == $origin['origin'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($origin['origin']); ?>
-                                </option>
+                                            $origin_value = htmlspecialchars($origin['origin']);
+                                    ?>
+                                        <div class="custom-select-option px-4 py-2 cursor-pointer hover:bg-gray-700 rounded" 
+                                             data-value="<?php echo $origin_value; ?>"
+                                             <?php echo isset($_POST['origin']) && $_POST['origin'] == $origin_value ? 'data-selected="true"' : ''; ?>>
+                                            <?php echo $origin_value; ?>
+                                        </div>
                             <?php 
                                 endwhile; 
                             endif; 
                             ?>
-                        </select>
+                                </div>
+                            </div>
+                            <input type="hidden" name="origin" id="origin" value="<?php echo isset($_POST['origin']) ? htmlspecialchars($_POST['origin']) : ''; ?>">
+                        </div>
                     </div>
                     <div>
                         <label for="destination" class="block text-gray-300 text-sm font-medium mb-2">Destination</label>
-                        <select id="destination" name="destination" class="w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all" required>
-                            <option value="">Select destination</option>
+                        <div class="relative custom-select-container">
+                            <div class="custom-select-header w-full py-3 px-4 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-all flex justify-between items-center cursor-pointer">
+                                <span id="selected-destination-text"><?php echo isset($_POST['destination']) && !empty($_POST['destination']) ? htmlspecialchars($_POST['destination']) : 'Select destination'; ?></span>
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                            <div class="custom-select-dropdown absolute z-50 hidden w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-72 overflow-y-auto">
+                                <div class="sticky top-0 bg-gray-800 p-2 border-b border-gray-700">
+                                    <div class="relative">
+                                        <input type="text" class="destination-search-input w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-white" placeholder="Search destinations...">
+                                        <button type="button" class="clear-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="custom-select-options p-1">
+                                    
                             <?php 
                             if($destinations_result && $destinations_result->num_rows > 0): 
+                                        mysqli_data_seek($destinations_result, 0);
                                 while($destination = $destinations_result->fetch_assoc()): 
-                            ?>
-                                <option value="<?php echo htmlspecialchars($destination['destination']); ?>" <?php echo isset($_POST['destination']) && $_POST['destination'] == $destination['destination'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($destination['destination']); ?>
-                                </option>
+                                            $destination_value = htmlspecialchars($destination['destination']);
+                                    ?>
+                                        <div class="custom-select-option px-4 py-2 cursor-pointer hover:bg-gray-700 rounded" 
+                                             data-value="<?php echo $destination_value; ?>"
+                                             <?php echo isset($_POST['destination']) && $_POST['destination'] == $destination_value ? 'data-selected="true"' : ''; ?>>
+                                            <?php echo $destination_value; ?>
+                                        </div>
                             <?php 
                                 endwhile; 
                             endif; 
                             ?>
-                        </select>
+                                </div>
+                            </div>
+                            <input type="hidden" name="destination" id="destination" value="<?php echo isset($_POST['destination']) ? htmlspecialchars($_POST['destination']) : ''; ?>">
+                        </div>
                     </div>
                     <div class="flex items-end">
                         <button type="submit" name="search" class="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 w-full transition duration-300 btn-primary">
@@ -283,7 +325,7 @@ if (!$search_performed && empty($error_message)) {
                         <i class="fas fa-exclamation-circle"></i>
                     </div>
                     <div class="ml-3">
-                        <p><?php echo $error_message; ?></p>
+                <p><?php echo $error_message; ?></p>
                     </div>
                 </div>
             </div>
@@ -354,34 +396,34 @@ if (!$search_performed && empty($error_message)) {
                             <tr class="route-card">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                                     <?php echo htmlspecialchars($route['origin']); ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                                     <?php echo htmlspecialchars($route['destination']); ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <?php echo date('g:i A', strtotime($route['departure_time'])); ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <?php echo date('g:i A', strtotime($route['arrival_time'])); ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <?php echo $days_formatted; ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <div class="flex items-center">
                                         <i class="fas fa-clock text-red-500 mr-2"></i>
                                         <?php echo $duration_text; ?>
                                     </div>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-500">
                                     $<?php echo number_format($route['base_price'], 2); ?>
-                                </td>
+                            </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     <a href="booking.php?schedule_id=<?php echo $route['schedule_id']; ?>&travel_date=<?php echo date('Y-m-d'); ?>" class="inline-flex items-center px-3 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition duration-300">
                                         <i class="fas fa-ticket-alt mr-2"></i> Book Now
                                     </a>
-                                </td>
-                            </tr>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
@@ -390,7 +432,7 @@ if (!$search_performed && empty($error_message)) {
             <div class="bg-gray-800 text-center py-16 rounded-lg border border-gray-700">
                 <div class="text-red-500 text-5xl mb-4">
                     <i class="fas fa-route"></i>
-                </div>
+            </div>
                 <h3 class="text-xl font-semibold text-white mb-2">No routes found</h3>
                 <p class="text-gray-400 mb-6 max-w-md mx-auto">We couldn't find any routes matching your search criteria. Please try a different origin or destination.</p>
                 <a href="routes.php" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300">
@@ -431,7 +473,7 @@ if (!$search_performed && empty($error_message)) {
                             <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
-                </div>
+            </div>
                 
                 <div class="relative group overflow-hidden rounded-lg h-64 route-card">
                     <img src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Los Angeles" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
@@ -444,8 +486,8 @@ if (!$search_performed && empty($error_message)) {
                             <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
-                </div>
-                
+                    </div>
+                    
                 <div class="relative group overflow-hidden rounded-lg h-64 route-card">
                     <img src="https://images.unsplash.com/photo-1574555059045-3bc478721f0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Boston" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
                     <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
@@ -518,7 +560,153 @@ if (!$search_performed && empty($error_message)) {
     <script>
         // Mobile menu toggle
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Initialize custom selects with search
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all custom select containers
+            const containers = document.querySelectorAll('.custom-select-container');
+            
+            // Initialize origin dropdown
+            initCustomSelect(
+                'origin', 
+                containers[0], 
+                '#selected-origin-text', 
+                '.origin-search-input'
+            );
+            
+            // Initialize destination dropdown
+            initCustomSelect(
+                'destination', 
+                containers[1], 
+                '#selected-destination-text', 
+                '.destination-search-input'
+            );
+            
+            // Function to initialize a custom select with search
+            function initCustomSelect(inputId, container, selectedTextSelector, searchInputSelector) {
+                const header = container.querySelector('.custom-select-header');
+                const dropdown = container.querySelector('.custom-select-dropdown');
+                const options = container.querySelectorAll('.custom-select-option');
+                const hiddenInput = document.getElementById(inputId);
+                const selectedText = document.querySelector(selectedTextSelector);
+                const searchInput = container.querySelector(searchInputSelector);
+                const clearButton = container.querySelector('.clear-search');
+                
+                // Set initial selected value if exists
+                const initialValue = hiddenInput.value;
+                if (initialValue) {
+                    const selectedOption = Array.from(options).find(opt => opt.getAttribute('data-value') === initialValue);
+                    if (selectedOption) {
+                        selectedText.textContent = selectedOption.textContent;
+                        selectedOption.classList.add('bg-red-500', 'text-white');
+                    }
+                }
+                
+                // Toggle dropdown
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('hidden');
+                    if (!dropdown.classList.contains('hidden')) {
+                        searchInput.focus();
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!container.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+                
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    
+                    let anyVisible = false;
+                    options.forEach(option => {
+                        if (option.getAttribute('data-value') === '') return; // Skip the placeholder
+                        
+                        const text = option.textContent.toLowerCase();
+                        
+                        if (searchTerm === '' || text.includes(searchTerm)) {
+                            option.style.display = '';
+                            anyVisible = true;
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show no results message if needed
+                    const noResultsEl = dropdown.querySelector('.no-results');
+                    if (!anyVisible) {
+                        if (!noResultsEl) {
+                            const noResults = document.createElement('div');
+                            noResults.className = 'no-results px-4 py-2 text-gray-400 text-center';
+                            noResults.textContent = 'No options found';
+                            dropdown.querySelector('.custom-select-options').appendChild(noResults);
+                        }
+                    } else if (noResultsEl) {
+                        noResultsEl.remove();
+                    }
+                });
+                
+                // Clear search
+                clearButton.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent triggering dropdown toggle
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                });
+                
+                // Select option
+                options.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const value = this.getAttribute('data-value');
+                        hiddenInput.value = value;
+                        
+                        // Remove selected class from all options
+                        options.forEach(opt => {
+                            opt.classList.remove('bg-red-500', 'text-white');
+                        });
+                        
+                        if (value) {
+                            selectedText.textContent = this.textContent;
+                            this.classList.add('bg-red-500', 'text-white');
+                        } else {
+                            selectedText.textContent = selectedText.getAttribute('data-placeholder') || 'Select an option';
+                        }
+                        
+                        dropdown.classList.add('hidden');
+                    });
+                });
+                
+                // Handle keyboard events
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        // Select the first visible option
+                        const visibleOptions = Array.from(options).filter(opt => 
+                            opt.getAttribute('data-value') !== '' && 
+                            opt.style.display !== 'none'
+                        );
+                        
+                        if (visibleOptions.length === 1) {
+                            visibleOptions[0].click();
+                        }
+                        e.preventDefault();
+                    } else if (e.key === 'Escape') {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+                
+                // Pre-select option if it was previously selected
+                const preSelectedOption = Array.from(options).find(opt => opt.hasAttribute('data-selected'));
+                if (preSelectedOption) {
+                    preSelectedOption.classList.add('bg-red-500', 'text-white');
+                }
+            }
         });
     </script>
 </body>
