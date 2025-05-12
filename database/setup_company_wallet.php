@@ -60,7 +60,7 @@ echo "<!DOCTYPE html>
         </div>
         
         <div class='flex justify-center'>
-            <a href='../pages/admin/company_wallet.php' class='px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200'>
+            <a href='../pages/admin_company_wallet.php' class='px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200'>
                 Go to Company Wallet
             </a>
         </div>

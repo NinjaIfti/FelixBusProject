@@ -1,11 +1,39 @@
 <?php
 session_start();
-include_once('../../database/basedados.h');
+include_once('../database/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
+}
+
+// Helper function to determine ticket class from price
+function determineTicketClass($ticket_price, $base_price = null) {
+    // If we don't have the base price, we have to estimate based on typical price ranges
+    if ($base_price === null) {
+        // Classification based on price ranges when base price is unknown
+        if ($ticket_price <= 0) {
+            return 'Standard';
+        } elseif ($ticket_price >= 120) { // High value typically means Business
+            return 'Business';
+        } elseif ($ticket_price >= 60) { // Medium-high value typically means Premium
+            return 'Premium';
+        } else {
+            return 'Standard';
+        }
+    }
+    
+    // If we have the base price, we can calculate the extra amount paid for the class
+    $price_difference = $ticket_price - $base_price;
+    
+    if ($price_difference >= 35) { // Business class typically costs $40 more
+        return 'Business';
+    } elseif ($price_difference >= 20) { // Premium class typically costs $25 more
+        return 'Premium';
+    } else {
+        return 'Standard';
+    }
 }
 
 // Get user information
@@ -44,15 +72,15 @@ $tickets_result = $conn->query($tickets_query);
     <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-2xl font-bold flex items-center">
+                <a href="index.php" class="text-2xl font-bold flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="../routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="../timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="../prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="../contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -69,11 +97,11 @@ $tickets_result = $conn->query($tickets_query);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="../profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
-                        <a href="../logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
+                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -93,12 +121,12 @@ $tickets_result = $conn->query($tickets_query);
         <!-- Actions Bar -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <a href="dashboard.php" class="text-red-500 hover:text-red-400">
+                <a href="client_dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             </div>
             <div>
-                <a href="../routes.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <a href="client_routes.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
                     <i class="fas fa-search mr-2"></i> Find New Routes
                 </a>
             </div>
@@ -145,6 +173,11 @@ $tickets_result = $conn->query($tickets_query);
                                                 <p class="text-gray-400"><i class="far fa-calendar-alt mr-2"></i> <?php echo date('l, F j, Y', strtotime($ticket['travel_date'])); ?></p>
                                                 <p class="text-gray-400"><i class="far fa-clock mr-2"></i> <?php echo date('g:i A', strtotime($ticket['departure_time'])); ?> - <?php echo date('g:i A', strtotime($ticket['arrival_time'])); ?></p>
                                                 <p class="text-gray-400"><i class="fas fa-money-bill-wave mr-2"></i> $<?php echo number_format($ticket['price'], 2); ?></p>
+                                                <?php 
+                                                    $ticket_class = determineTicketClass($ticket['price'], $ticket['base_price']);
+                                                    $class_color = $ticket_class === 'Business' ? 'text-blue-500' : ($ticket_class === 'Premium' ? 'text-yellow-500' : 'text-green-500');
+                                                ?>
+                                                <p class="text-gray-400"><i class="fas fa-tag mr-2"></i> Class: <span class="<?php echo $class_color; ?> font-medium"><?php echo $ticket_class; ?></span></p>
                                             </div>
                                         </div>
                                         
@@ -165,7 +198,7 @@ $tickets_result = $conn->query($tickets_query);
                                     
                                     <?php if($ticket['status'] === 'active'): ?>
                                     <div class="mt-4 pt-4 border-t border-gray-800 flex justify-end">
-                                        <a href="ticket_details.php?id=<?php echo $ticket['id']; ?>" class="text-red-500 hover:text-red-400 mr-4">
+                                        <a href="client_ticket_details.php?id=<?php echo $ticket['id']; ?>" class="text-red-500 hover:text-red-400 mr-4">
                                             <i class="fas fa-info-circle mr-1"></i> Details
                                         </a>
                                         <a href="#" onclick="window.print()" class="text-red-500 hover:text-red-400">
@@ -185,7 +218,7 @@ $tickets_result = $conn->query($tickets_query);
                     </div>
                     <h3 class="text-xl font-semibold text-white mb-2">No Tickets Found</h3>
                     <p class="text-gray-400 mb-6">You haven't purchased any tickets yet.</p>
-                    <a href="../routes.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                    <a href="client_routes.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
                         <i class="fas fa-search mr-2"></i> Find Routes and Book Tickets
                     </a>
                 </div>

@@ -6,9 +6,9 @@ include_once('../database/basedados.h');
 if(isset($_SESSION['user_id'])) {
     // Redirect based on user type
     if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'staff') {
-        header("Location: admin/dashboard.php");
+        header("Location: admin_dashboard.php");
     } else {
-        header("Location: client/dashboard.php");
+        header("Location: client_dashboard.php");
     }
     exit;
 }
@@ -34,10 +34,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_type'] = $user['user_type'];
             
             // Redirect based on user type
-            if($user['user_type'] == 'admin' || $user['user_type'] == 'staff') {
-                header("Location: admin/dashboard.php");
+            if($user['user_type'] == 'admin') {
+                header("Location: admin_dashboard.php");
+            } elseif($user['user_type'] == 'staff') {
+                header("Location: admin_dashboard.php");  // Staff go to admin dashboard as well
             } else {
-                header("Location: client/dashboard.php");
+                header("Location: client_dashboard.php");
             }
             exit;
         } else {

@@ -151,11 +151,11 @@ $pricing_tiers = [
                              x-transition:leave-end="transform opacity-0 scale-95"
                              class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
                             <?php if($_SESSION['user_type'] === 'client'): ?>
-                                <a href="client/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                                <a href="client/tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                                <a href="client/wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                                <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                                <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                                <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
                             <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                                <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
+                                <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
                             <?php endif; ?>
                             <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                             <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
@@ -197,7 +197,7 @@ $pricing_tiers = [
     <div class="container mx-auto px-4 py-12 -mt-16 relative z-20">
         <!-- Pricing Cards -->
         <div class="grid md:grid-cols-3 gap-6 mb-12">
-            <?php foreach($pricing_tiers as $tier): ?>
+            <?php foreach($pricing_tiers as $tier_key => $tier): ?>
             <div class="bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700 pricing-card <?php echo $tier['name'] === 'Premium' ? 'transform md:scale-105 z-10' : ''; ?>">
                 <div class="bg-<?php echo $tier['color']; ?> text-white p-6">
                     <h3 class="text-2xl font-bold mb-2"><?php echo $tier['name']; ?></h3>
@@ -213,7 +213,7 @@ $pricing_tiers = [
                         </li>
                         <?php endforeach; ?>
                     </ul>
-                    <a href="routes.php" class="block text-center bg-<?php echo $tier['color']; ?> text-white py-2 rounded-md hover:bg-<?php echo str_replace('500', '600', str_replace('600', '700', str_replace('700', '800', $tier['color']))); ?> transition duration-300 btn-primary">Book Now</a>
+                    <a href="routes.php?plan=<?php echo $tier_key; ?>" class="block text-center bg-<?php echo $tier['color']; ?> text-white py-2 rounded-md hover:bg-<?php echo str_replace('500', '600', str_replace('600', '700', str_replace('700', '800', $tier['color']))); ?> transition duration-300 btn-primary">Book Now</a>
                 </div>
             </div>
             <?php endforeach; ?>

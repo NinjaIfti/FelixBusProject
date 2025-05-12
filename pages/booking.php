@@ -35,7 +35,7 @@ if(isset($_SESSION['booking_travel_date'])) {
 
 // Check if schedule_id and travel_date are provided
 if(empty($schedule_id) || empty($travel_date)) {
-    header("Location: routes.php");
+    header("Location: client_routes.php");
     exit;
 }
 
@@ -48,11 +48,46 @@ $schedule_result = $conn->query($schedule_query);
 
 if(!$schedule_result || $schedule_result->num_rows == 0) {
     $_SESSION['error_message'] = "Invalid schedule selected.";
-    header("Location: routes.php");
+    header("Location: client_routes.php");
     exit;
 }
 
 $schedule = $schedule_result->fetch_assoc();
+
+// Get pricing plan if selected
+$plan_name = 'Standard'; // Default plan name
+$standard_price = $schedule['base_price'];
+
+// Define the fixed prices for premium and business classes (additional cost)
+$standard_plan_price = 15;
+$premium_plan_price = 25;
+$business_plan_price = 40;
+
+// Check if a plan was selected
+if (isset($_SESSION['selected_plan'])) {
+    switch ($_SESSION['selected_plan']) {
+        case 'premium':
+            $plan_name = 'Premium';
+            $plan_price = $premium_plan_price;
+            $ticket_price = $standard_price + $premium_plan_price;
+            break;
+        case 'business':
+            $plan_name = 'Business';
+            $plan_price = $business_plan_price;
+            $ticket_price = $standard_price + $business_plan_price;
+            break;
+        default:
+            // Standard plan (default)
+            $plan_name = 'Standard';
+            $plan_price = $standard_plan_price;
+            $ticket_price = $standard_price + $standard_plan_price;
+            break;
+    }
+} else {
+    // If no plan selected, use standard pricing
+    $plan_price = $standard_plan_price;
+    $ticket_price = $standard_price + $standard_plan_price;
+}
 
 // Check if there are available seats
 $booked_seats_query = "SELECT COUNT(*) as booked_seats 
@@ -64,7 +99,7 @@ $booked_seats_result = $conn->query($booked_seats_query);
 
 if(!$booked_seats_result) {
     $_SESSION['error_message'] = "Error checking seat availability.";
-    header("Location: routes.php");
+    header("Location: client_routes.php");
     exit;
 }
 
@@ -73,7 +108,7 @@ $available_seats = isset($schedule['capacity']) ? $schedule['capacity'] - $booke
 
 if($available_seats <= 0) {
     $_SESSION['error_message'] = "Sorry, this bus is fully booked for the selected date.";
-    header("Location: routes.php");
+    header("Location: client_routes.php");
     exit;
 }
 
@@ -118,11 +153,11 @@ $error_message = '';
 
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
     // Check if user has enough balance
-    if($balance < $schedule['base_price']) {
+    if($balance < $ticket_price) {
         $error_message = "Insufficient funds in your wallet. Please add funds before booking.";
         
         // Log the error for reference
-        error_log("Booking failed: Insufficient funds for user $user_id. Balance: $balance, Price: {$schedule['base_price']}");
+        error_log("Booking failed: Insufficient funds for user $user_id. Balance: $balance, Price: $ticket_price");
     } else {
         // Double-check seat availability before booking
         $booked_seats_query = "SELECT COUNT(*) as booked_seats 
@@ -155,25 +190,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
                     
                     // Create ticket
                     $create_ticket = "INSERT INTO tickets (user_id, schedule_id, travel_date, ticket_number, price, status, purchased_at, purchased_by) 
-                                    VALUES ($user_id, $schedule_id, '$travel_date', '$ticket_number', {$schedule['base_price']}, 'active', NOW(), $user_id)";
+                                    VALUES ($user_id, $schedule_id, '$travel_date', '$ticket_number', $ticket_price, 'active', NOW(), $user_id)";
                     
                     if($conn->query($create_ticket) === TRUE) {
                         $ticket_id = $conn->insert_id;
                         error_log("Ticket created with ID: $ticket_id");
                         
                         // Deduct from user wallet
-                        $update_wallet = "UPDATE wallets SET balance = balance - {$schedule['base_price']} WHERE id = $wallet_id";
+                        $update_wallet = "UPDATE wallets SET balance = balance - $ticket_price WHERE id = $wallet_id";
                         
                         if($conn->query($update_wallet) === TRUE) {
-                            error_log("User wallet updated, deducted {$schedule['base_price']}");
+                            error_log("User wallet updated, deducted $ticket_price");
                             
                             // Add to FelixBus company wallet
                             if($company_wallet_id > 0) {
-                                $update_company_wallet = "UPDATE wallets SET balance = balance + {$schedule['base_price']} WHERE id = $company_wallet_id";
+                                $update_company_wallet = "UPDATE wallets SET balance = balance + $ticket_price WHERE id = $company_wallet_id";
                                 if(!$conn->query($update_company_wallet)) {
                                     throw new Exception("Error updating company wallet: " . $conn->error);
                                 }
-                                error_log("Company wallet updated, added {$schedule['base_price']}");
+                                error_log("Company wallet updated, added $ticket_price");
                             }
                             
                             // Log transaction for user
@@ -181,13 +216,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
                             $reference = "Ticket #$ticket_number";
                             
                             $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                            VALUES ($wallet_id, {$schedule['base_price']}, '$transaction_type', '$reference')";
+                                            VALUES ($wallet_id, $ticket_price, '$transaction_type', '$reference')";
                             
                             if($conn->query($log_transaction) === TRUE) {
                                 // Log transaction for company
                                 if($company_wallet_id > 0) {
                                     $company_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                                          VALUES ($company_wallet_id, {$schedule['base_price']}, 'deposit', 'Payment for $reference')";
+                                                          VALUES ($company_wallet_id, $ticket_price, 'deposit', 'Payment for $reference')";
                                     if(!$conn->query($company_transaction)) {
                                         throw new Exception("Error logging company transaction: " . $conn->error);
                                     }
@@ -243,18 +278,42 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #111111;
+            color: #f3f4f6;
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        
+        .booking-card {
+            transition: all 0.3s ease;
+        }
+        
+        .booking-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-900 text-gray-100 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="index.php" class="text-2xl font-bold">FelixBus</a>
+                <a href="index.php" class="text-2xl font-bold flex items-center">
+                    <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
+                    <span>Felix<span class="text-red-600">Bus</span></span>
+                </a>
                 <div class="hidden md:flex space-x-4">
-                    <a href="routes.php" class="hover:text-blue-200 font-medium">Routes</a>
-                    <a href="timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="contact.php" class="hover:text-blue-200">Contact</a>
+                    <a href="routes.php" class="hover:text-red-400 font-medium">Routes</a>
+                    <a href="timetables.php" class="hover:text-red-400">Timetables</a>
+                    <a href="prices.php" class="hover:text-red-400">Prices</a>
+                    <a href="contact.php" class="hover:text-red-400">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -270,16 +329,16 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
+                         class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
                         <?php if($_SESSION['user_type'] === 'client'): ?>
-                            <a href="client/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Dashboard</a>
-                            <a href="client/tickets.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">My Tickets</a>
-                            <a href="client/wallet.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Wallet</a>
+                            <a href="client_dashboard.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Dashboard</a>
+                            <a href="client_tickets.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">My Tickets</a>
+                            <a href="client_wallet.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Wallet</a>
                         <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                            <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Admin Panel</a>
+                            <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Admin Panel</a>
                         <?php endif; ?>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
-                        <a href="logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
+                        <a href="profile.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="logout.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -287,7 +346,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     </nav>
 
     <!-- Page Header -->
-    <div class="bg-blue-700 py-8 text-white">
+    <div class="bg-red-900 py-8 text-white">
         <div class="container mx-auto px-4">
             <h1 class="text-3xl font-bold mb-2">Book Your Ticket</h1>
             <p class="text-lg">Confirm your travel details and complete your booking.</p>
@@ -298,16 +357,16 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     <div class="container mx-auto px-4 py-8">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="routes.php" class="text-blue-600 hover:text-blue-800">
+            <a href="client_routes.php" class="text-red-400 hover:text-red-300">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Routes
             </a>
         </div>
         
         <?php if($success_message): ?>
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+            <div class="bg-green-900 border-l-4 border-green-500 text-green-100 p-4 mb-6" role="alert">
                 <p><?php echo $success_message; ?></p>
                 <div class="mt-4">
-                    <a href="client/tickets.php" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-800 focus:outline-none focus:border-green-800 focus:ring focus:ring-green-200 transition">
+                    <a href="client_tickets.php" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-800 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring focus:ring-green-300 transition">
                         View My Tickets
                     </a>
                 </div>
@@ -315,11 +374,11 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
         <?php endif; ?>
         
         <?php if($error_message): ?>
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <div class="bg-red-900 border-l-4 border-red-500 text-red-100 p-4 mb-6" role="alert">
                 <p><?php echo $error_message; ?></p>
                 <?php if(strpos($error_message, "Insufficient funds") !== false): ?>
                     <div class="mt-4">
-                        <a href="client/wallet.php" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring focus:ring-blue-200 transition">
+                        <a href="client_wallet.php" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-800 focus:outline-none focus:border-red-800 focus:ring focus:ring-red-300 transition">
                             Add Funds to Wallet
                         </a>
                     </div>
@@ -331,17 +390,17 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
         <div class="grid md:grid-cols-3 gap-8">
             <!-- Trip Details -->
             <div class="md:col-span-2">
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Trip Details</h2>
+                <div class="bg-gray-800 rounded-lg shadow-md p-6 mb-6 border border-gray-700">
+                    <h2 class="text-xl font-semibold text-white mb-6">Trip Details</h2>
                     
-                    <div class="border-b pb-4 mb-4">
+                    <div class="border-b border-gray-700 pb-4 mb-4">
                         <div class="flex items-start">
                             <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($schedule['origin']); ?> to <?php echo htmlspecialchars($schedule['destination']); ?></h3>
-                                <p class="text-gray-600 text-sm"><?php echo $formatted_travel_date; ?></p>
+                                <h3 class="text-lg font-semibold text-white"><?php echo htmlspecialchars($schedule['origin']); ?> to <?php echo htmlspecialchars($schedule['destination']); ?></h3>
+                                <p class="text-gray-400 text-sm"><?php echo $formatted_travel_date; ?></p>
                             </div>
                             <div class="text-right">
-                                <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                <span class="inline-block bg-red-900 text-red-100 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                                     <?php echo $available_seats; ?> seats available
                                 </span>
                             </div>
@@ -350,34 +409,34 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
-                            <p class="text-sm text-gray-500">Departure</p>
-                            <p class="text-lg font-semibold text-gray-800"><?php echo date('g:i A', strtotime($schedule['departure_time'])); ?></p>
-                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($schedule['origin']); ?></p>
+                            <p class="text-sm text-gray-400">Departure</p>
+                            <p class="text-lg font-semibold text-white"><?php echo date('g:i A', strtotime($schedule['departure_time'])); ?></p>
+                            <p class="text-sm text-gray-400"><?php echo htmlspecialchars($schedule['origin']); ?></p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Arrival</p>
-                            <p class="text-lg font-semibold text-gray-800"><?php echo date('g:i A', strtotime($schedule['arrival_time'])); ?></p>
-                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($schedule['destination']); ?></p>
+                            <p class="text-sm text-gray-400">Arrival</p>
+                            <p class="text-lg font-semibold text-white"><?php echo date('g:i A', strtotime($schedule['arrival_time'])); ?></p>
+                            <p class="text-sm text-gray-400"><?php echo htmlspecialchars($schedule['destination']); ?></p>
                         </div>
                     </div>
                     
-                    <div class="flex justify-between items-center border-t pt-4">
+                    <div class="flex justify-between items-center border-t border-gray-700 pt-4">
                         <div>
-                            <p class="text-sm text-gray-500">Duration</p>
-                            <p class="text-lg font-semibold text-gray-800"><?php echo $duration_text; ?></p>
+                            <p class="text-sm text-gray-400">Duration</p>
+                            <p class="text-lg font-semibold text-white"><?php echo $duration_text; ?></p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Distance</p>
-                            <p class="text-lg font-semibold text-gray-800"><?php echo $schedule['distance'] ? $schedule['distance'] . ' km' : 'N/A'; ?></p>
+                            <p class="text-sm text-gray-400">Distance</p>
+                            <p class="text-lg font-semibold text-white"><?php echo $schedule['distance'] ? $schedule['distance'] . ' km' : 'N/A'; ?></p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Terms and Conditions -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Booking Terms & Conditions</h2>
+                <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700">
+                    <h2 class="text-xl font-semibold text-white mb-4">Booking Terms & Conditions</h2>
                     
-                    <div class="text-sm text-gray-600 space-y-2">
+                    <div class="text-sm text-gray-400 space-y-2">
                         <p>1. Tickets are valid only for the specific route, date, and time.</p>
                         <p>2. Please arrive at least 30 minutes before departure time.</p>
                         <p>3. Each passenger is allowed one piece of luggage and one carry-on item.</p>
@@ -389,33 +448,41 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
             
             <!-- Payment & Confirmation -->
             <div class="md:col-span-1">
-                <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Payment Summary</h2>
+                <div class="bg-gray-800 rounded-lg shadow-md p-6 sticky top-6 border border-gray-700">
+                    <h2 class="text-xl font-semibold text-white mb-6">Payment Summary</h2>
                     
-                    <div class="border-b pb-4 mb-4">
+                    <div class="border-b border-gray-700 pb-4 mb-4">
                         <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">Ticket Price</span>
-                            <span class="text-gray-800 font-semibold">$<?php echo number_format($schedule['base_price'], 2); ?></span>
+                            <span class="text-gray-400">Base Ticket Price</span>
+                            <span class="text-white font-semibold">$<?php echo number_format($standard_price, 2); ?></span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-400">Travel Class</span>
+                            <span class="text-red-500 font-semibold"><?php echo $plan_name; ?></span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-400">Class Price</span>
+                            <span class="text-white font-semibold">$<?php echo number_format($plan_price, 2); ?></span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Service Fee</span>
-                            <span class="text-gray-800 font-semibold">$0.00</span>
+                            <span class="text-gray-400">Service Fee</span>
+                            <span class="text-white font-semibold">$0.00</span>
                         </div>
                     </div>
                     
                     <div class="flex justify-between mb-6">
-                        <span class="text-gray-800 font-semibold">Total</span>
-                        <span class="text-xl text-blue-600 font-bold">$<?php echo number_format($schedule['base_price'], 2); ?></span>
+                        <span class="text-white font-semibold">Total</span>
+                        <span class="text-xl text-red-500 font-bold">$<?php echo number_format($ticket_price, 2); ?></span>
                     </div>
                     
-                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div class="bg-gray-900 p-4 rounded-lg mb-6 border border-gray-700">
                         <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">Your Wallet Balance</span>
-                            <span class="text-gray-800 font-semibold">$<?php echo number_format($balance, 2); ?></span>
+                            <span class="text-gray-400">Your Wallet Balance</span>
+                            <span class="text-white font-semibold">$<?php echo number_format($balance, 2); ?></span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">After Transaction</span>
-                            <span class="text-gray-800 font-semibold">$<?php echo number_format($balance - $schedule['base_price'], 2); ?></span>
+                            <span class="text-gray-400">After Transaction</span>
+                            <span class="text-white font-semibold">$<?php echo number_format($balance - $ticket_price, 2); ?></span>
                         </div>
                     </div>
                     
@@ -423,21 +490,21 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?schedule_id=$schedule_id&travel_date=$travel_date"); ?>">
                         <div class="mb-4">
                             <div class="flex items-center mb-4">
-                                <input type="checkbox" id="terms" name="terms" class="h-4 w-4 text-blue-600" required>
-                                <label for="terms" class="ml-2 block text-gray-700 text-sm">I agree to the Terms & Conditions</label>
+                                <input type="checkbox" id="terms" name="terms" class="h-4 w-4 text-red-600 bg-gray-700 border-gray-600" required>
+                                <label for="terms" class="ml-2 block text-gray-300 text-sm">I agree to the Terms & Conditions</label>
                             </div>
                         </div>
-                        <button type="submit" name="book" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full
-                                  <?php echo ($balance < $schedule['base_price']) ? 'opacity-50 cursor-not-allowed' : ''; ?>"
-                                  <?php echo ($balance < $schedule['base_price']) ? 'disabled' : ''; ?>>
-                            <?php echo ($balance < $schedule['base_price']) ? 'Insufficient Funds' : 'Complete Booking'; ?>
+                        <button type="submit" name="book" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full
+                                  <?php echo ($balance < $ticket_price) ? 'opacity-50 cursor-not-allowed' : ''; ?>"
+                                  <?php echo ($balance < $ticket_price) ? 'disabled' : ''; ?>>
+                            <?php echo ($balance < $ticket_price) ? 'Insufficient Funds' : 'Complete Booking'; ?>
                         </button>
                     </form>
                     <?php endif; ?>
                     
-                    <?php if($balance < $schedule['base_price']): ?>
+                    <?php if($balance < $ticket_price): ?>
                     <div class="mt-4 text-center">
-                        <a href="client/wallet.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <a href="client_wallet.php" class="text-red-400 hover:text-red-300 text-sm font-medium">
                             Add funds to your wallet <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>
@@ -448,7 +515,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     </div>
 
     <!-- Footer -->
-    <footer class="bg-blue-800 text-white py-8 mt-12">
+    <footer class="bg-black text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
             <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
         </div>

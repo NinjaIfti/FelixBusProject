@@ -6,9 +6,9 @@ include_once('../database/basedados.h');
 if(isset($_SESSION['user_id'])) {
     // Redirect based on user type
     if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'staff') {
-        header("Location: admin/dashboard.php");
+        header("Location: admin_dashboard.php");
     } else {
-        header("Location: client/dashboard.php");
+        header("Location: client_dashboard.php");
     }
     exit;
 }

@@ -1,16 +1,44 @@
 <?php
 session_start();
-include_once('../../database/basedados.h');
+include_once('../database/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
+}
+
+// Helper function to determine ticket class from price
+function determineTicketClass($ticket_price, $base_price = null) {
+    // If we don't have the base price, we have to estimate based on typical price ranges
+    if ($base_price === null) {
+        // Classification based on price ranges when base price is unknown
+        if ($ticket_price <= 0) {
+            return 'Standard';
+        } elseif ($ticket_price >= 120) { // High value typically means Business
+            return 'Business';
+        } elseif ($ticket_price >= 60) { // Medium-high value typically means Premium
+            return 'Premium';
+        } else {
+            return 'Standard';
+        }
+    }
+    
+    // If we have the base price, we can calculate the extra amount paid for the class
+    $price_difference = $ticket_price - $base_price;
+    
+    if ($price_difference >= 35) { // Business class typically costs $40 more
+        return 'Business';
+    } elseif ($price_difference >= 20) { // Premium class typically costs $25 more
+        return 'Premium';
+    } else {
+        return 'Standard';
+    }
 }
 
 // Check if ticket ID is provided
 if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: tickets.php");
+    header("Location: client_tickets.php");
     exit;
 }
 
@@ -31,7 +59,7 @@ $ticket_result = $conn->query($ticket_query);
 
 // Check if ticket exists and belongs to the user
 if(!$ticket_result || $ticket_result->num_rows == 0) {
-    header("Location: tickets.php");
+    header("Location: client_tickets.php");
     exit;
 }
 
@@ -90,15 +118,15 @@ $days_display = implode(', ', $days_text);
     <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-2xl font-bold flex items-center">
+                <a href="index.php" class="text-2xl font-bold flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="../routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="../timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="../prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="../contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="client_routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="client_timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="client_prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -115,11 +143,11 @@ $days_display = implode(', ', $days_text);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="../profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
-                        <a href="../logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
+                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -138,7 +166,7 @@ $days_display = implode(', ', $days_text);
     <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="tickets.php" class="text-red-500 hover:text-red-400">
+            <a href="client_tickets.php" class="text-red-500 hover:text-red-400">
                 <i class="fas fa-arrow-left mr-1"></i> Back to My Tickets
             </a>
         </div>
@@ -205,12 +233,22 @@ $days_display = implode(', ', $days_text);
                             
                             <div class="flex border-b border-gray-700 pb-3">
                                 <div class="w-1/3 font-medium text-gray-400">Distance:</div>
-                                <div class="w-2/3 text-white"><?php echo number_format($ticket['distance'], 1); ?> km</div>
+                                <div class="w-2/3 text-white"><?php echo $ticket['distance'] ? $ticket['distance'] . ' km' : 'N/A'; ?></div>
                             </div>
                             
                             <div class="flex border-b border-gray-700 pb-3">
                                 <div class="w-1/3 font-medium text-gray-400">Price:</div>
                                 <div class="w-2/3 text-white">$<?php echo number_format($ticket['price'], 2); ?></div>
+                            </div>
+                            
+                            <?php 
+                                $ticket_class = determineTicketClass($ticket['price'], $ticket['base_price']);
+                                $class_color = $ticket_class === 'Business' ? 'text-blue-500' : 
+                                              ($ticket_class === 'Premium' ? 'text-yellow-500' : 'text-green-500');
+                            ?>
+                            <div class="flex border-b border-gray-700 pb-3">
+                                <div class="w-1/3 font-medium text-gray-400">Travel Class:</div>
+                                <div class="w-2/3 <?php echo $class_color; ?> font-semibold"><?php echo $ticket_class; ?></div>
                             </div>
                             
                             <div class="flex">

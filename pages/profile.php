@@ -121,11 +121,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                     </button>
                     <div class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20 hidden group-hover:block">
                         <?php if($_SESSION['user_type'] === 'client'): ?>
-                            <a href="client/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                            <a href="client/tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                            <a href="client/wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                            <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                            <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                            <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
                         <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                            <a href="admin/dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
+                            <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
                         <?php endif; ?>
                         <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
@@ -148,11 +148,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Navigation Links -->
         <div class="mb-6">
             <?php if($_SESSION['user_type'] === 'client'): ?>
-                <a href="client/dashboard.php" class="text-red-500 hover:text-red-400">
+                <a href="client_dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                <a href="admin/dashboard.php" class="text-red-500 hover:text-red-400">
+                <a href="admin_dashboard.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             <?php endif; ?>
@@ -188,12 +188,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                         <p class="text-sm text-gray-400">Member since: <?php echo date('F j, Y', strtotime($user['created_at'])); ?></p>
                         <?php if($_SESSION['user_type'] === 'client'): ?>
                             <div class="mt-4">
-                                <a href="client/wallet.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
+                                <a href="client_wallet.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
                                     <i class="fas fa-wallet mr-1"></i> Manage Wallet
                                 </a>
                             </div>
                             <div class="mt-2">
-                                <a href="client/tickets.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
+                                <a href="client_tickets.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
                                     <i class="fas fa-ticket-alt mr-1"></i> View My Tickets
                                 </a>
                             </div>

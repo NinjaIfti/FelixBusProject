@@ -1,10 +1,10 @@
 <?php
 session_start();
-include_once('../../database/basedados.h');
+include_once('../database/basedados.h');
 
 // Check if user is logged in and is admin or staff
 if(!isset($_SESSION['user_id']) || ($_SESSION['user_type'] !== 'admin' && $_SESSION['user_type'] !== 'staff')) {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -171,39 +171,39 @@ if($client) {
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
-                <a href="dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
+                <a href="admin_dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
-                <a href="users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="manage_wallet.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
+                <a href="admin_manage_wallet.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
-                <a href="../index.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="index.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-home mr-3"></i> Main Website
                 </a>
-                <a href="../logout.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link mt-auto">
+                <a href="logout.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link mt-auto">
                     <i class="fas fa-sign-out-alt mr-3"></i> Logout
                 </a>
             </nav>

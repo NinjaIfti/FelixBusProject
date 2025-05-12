@@ -1,10 +1,10 @@
 <?php
 session_start();
-include_once('../../database/basedados.h');
+include_once('../database/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -127,15 +127,15 @@ $transactions_result = $conn->query($transactions_query);
     <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="../index.php" class="text-2xl font-bold flex items-center">
+                <a href="index.php" class="text-2xl font-bold flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="../routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="../timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="../prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="../contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="client_routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="client_timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="client_prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -152,11 +152,11 @@ $transactions_result = $conn->query($transactions_query);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="../profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
-                        <a href="../logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
+                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
             </div>
@@ -174,13 +174,13 @@ $transactions_result = $conn->query($transactions_query);
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8 flex-1">
         <?php if($success_message): ?>
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+            <div class="bg-green-900 border-l-4 border-green-500 text-green-100 p-4 mb-6" role="alert">
                 <p><?php echo $success_message; ?></p>
             </div>
         <?php endif; ?>
         
         <?php if($error_message): ?>
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <div class="bg-red-900 border-l-4 border-red-500 text-red-100 p-4 mb-6" role="alert">
                 <p><?php echo $error_message; ?></p>
             </div>
         <?php endif; ?>
@@ -198,95 +198,106 @@ $transactions_result = $conn->query($transactions_query);
                     <p class="text-4xl font-bold text-white mb-4">$<?php echo number_format($wallet['balance'], 2); ?></p>
                     
                     <div class="border-t border-gray-700 pt-4">
-                        <p class="text-gray-400 mb-4">Use the forms below to add funds or withdraw from your wallet.</p>
-                        <a href="dashboard.php" class="text-red-500 hover:text-red-400 text-sm font-medium">
-                            <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+                        <a href="client_dashboard.php" class="text-red-500 hover:text-red-400 flex items-center">
+                            <i class="fas fa-chevron-left mr-2"></i> Back to Dashboard
                         </a>
                     </div>
                 </div>
-                
-                <!-- Deposit Form -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6 card border border-gray-700">
-                    <h2 class="text-xl font-semibold text-white mb-4">Add Funds</h2>
-                    <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                        <input type="hidden" name="action" value="deposit">
-                        <div class="mb-4">
-                            <label for="deposit_amount" class="block text-gray-200 text-sm font-bold mb-2">Amount ($)</label>
-                            <input type="number" step="0.01" min="0.01" id="deposit_amount" name="amount" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-200 leading-tight focus:outline-none focus:shadow-outline" required>
-                        </div>
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full">
-                            Add Funds
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Withdraw Form -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-md card border border-gray-700">
-                    <h2 class="text-xl font-semibold text-white mb-4">Withdraw Funds</h2>
-                    <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                        <input type="hidden" name="action" value="withdraw">
-                        <div class="mb-4">
-                            <label for="withdraw_amount" class="block text-gray-200 text-sm font-bold mb-2">Amount ($)</label>
-                            <input type="number" step="0.01" min="0.01" max="<?php echo $wallet['balance']; ?>" id="withdraw_amount" name="amount" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-200 leading-tight focus:outline-none focus:shadow-outline" required>
-                        </div>
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full">
-                            Withdraw Funds
-                        </button>
-                    </form>
-                </div>
             </div>
             
-            <!-- Transaction History -->
+            <!-- Transaction Forms -->
             <div class="md:col-span-2">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold text-white mb-6">Transaction History</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Deposit Form -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md card border border-gray-700">
+                        <h3 class="text-lg font-semibold text-white mb-4">Deposit Funds</h3>
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                            <div class="mb-4">
+                                <label for="deposit_amount" class="block text-gray-400 mb-2">Amount to Deposit ($)</label>
+                                <input type="number" name="amount" id="deposit_amount" min="1" step="0.01" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                            </div>
+                            <input type="hidden" name="action" value="deposit">
+                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md">
+                                <i class="fas fa-plus-circle mr-2"></i> Deposit
+                            </button>
+                        </form>
+                    </div>
                     
-                    <?php if($transactions_result && $transactions_result->num_rows > 0): ?>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full bg-gray-700">
-                                <thead>
-                                    <tr>
-                                        <th class="py-3 px-4 border-b border-gray-600 bg-gray-800 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date & Time</th>
-                                        <th class="py-3 px-4 border-b border-gray-600 bg-gray-800 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
-                                        <th class="py-3 px-4 border-b border-gray-600 bg-gray-800 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reference</th>
-                                        <th class="py-3 px-4 border-b border-gray-600 bg-gray-800 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php while($transaction = $transactions_result->fetch_assoc()): ?>
-                                        <tr>
-                                            <td class="py-4 px-4 border-b border-gray-600 text-sm">
-                                                <?php echo date('M j, Y, g:i A', strtotime($transaction['created_at'])); ?>
-                                            </td>
-                                            <td class="py-4 px-4 border-b border-gray-600 text-sm">
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded 
-                                                <?php
-                                                    echo $transaction['transaction_type'] === 'deposit' ? 'bg-green-100 text-green-800' : 
-                                                        ($transaction['transaction_type'] === 'withdrawal' ? 'bg-red-100 text-red-800' : 
-                                                        ($transaction['transaction_type'] === 'purchase' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'));
-                                                ?>">
-                                                    <?php echo ucfirst($transaction['transaction_type']); ?>
-                                                </span>
-                                            </td>
-                                            <td class="py-4 px-4 border-b border-gray-600 text-sm">
-                                                <?php echo $transaction['reference'] ? htmlspecialchars($transaction['reference']) : '-'; ?>
-                                            </td>
-                                            <td class="py-4 px-4 border-b border-gray-600 text-right text-sm font-medium 
-                                            <?php
-                                                echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? 'text-green-600' : 'text-red-600';
-                                            ?>">
-                                                <?php echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
-                                                $<?php echo number_format(abs($transaction['amount']), 2); ?>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php else: ?>
-                        <p class="text-gray-400">No transaction history found.</p>
-                    <?php endif; ?>
+                    <!-- Withdrawal Form -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-md card border border-gray-700">
+                        <h3 class="text-lg font-semibold text-white mb-4">Withdraw Funds</h3>
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                            <div class="mb-4">
+                                <label for="withdraw_amount" class="block text-gray-400 mb-2">Amount to Withdraw ($)</label>
+                                <input type="number" name="amount" id="withdraw_amount" min="1" max="<?php echo $wallet['balance']; ?>" step="0.01" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                            </div>
+                            <input type="hidden" name="action" value="withdraw">
+                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md">
+                                <i class="fas fa-minus-circle mr-2"></i> Withdraw
+                            </button>
+                        </form>
+                    </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Transaction History -->
+        <div class="mt-8">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-xl font-semibold text-white mb-6">Transaction History</h2>
+                
+                <?php if($transactions_result && $transactions_result->num_rows > 0): ?>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-transparent">
+                            <thead>
+                                <tr class="border-b border-gray-700">
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Reference</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while($transaction = $transactions_result->fetch_assoc()): ?>
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                        <td class="px-4 py-3 text-sm text-gray-300">
+                                            <?php echo date('M j, Y, g:i A', strtotime($transaction['created_at'])); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm">
+                                            <span class="px-2 py-1 text-xs rounded-full 
+                                            <?php 
+                                                echo $transaction['transaction_type'] === 'deposit' ? 'bg-green-900 text-green-300' : 
+                                                    ($transaction['transaction_type'] === 'refund' ? 'bg-indigo-900 text-indigo-300' : 
+                                                    'bg-red-900 text-red-300'); 
+                                            ?>">
+                                                <?php echo ucfirst($transaction['transaction_type']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-300">
+                                            <?php echo htmlspecialchars($transaction['reference']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right 
+                                        <?php 
+                                            echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') 
+                                                ? 'text-green-400' : 'text-red-400'; 
+                                        ?>">
+                                            <?php echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
+                                            $<?php echo number_format(abs($transaction['amount']), 2); ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center py-8">
+                        <div class="text-gray-400 text-5xl mb-4">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white mb-2">No Transactions</h3>
+                        <p class="text-gray-400">You haven't made any transactions yet.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
