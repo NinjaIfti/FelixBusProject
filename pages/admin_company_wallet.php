@@ -1,12 +1,10 @@
 <?php
 session_start();
 include_once('../database/basedados.h');
+include_once('../database/access_control.php');
 
-// Check if user is logged in and is admin
-if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
-    header("Location: login.php");
-    exit;
-}
+// Check if user has access to admin company wallet page
+checkPageAccess(['admin']);
 
 // Connect to database
 $conn = connectDatabase();
@@ -15,6 +13,16 @@ $user_id = $_SESSION['user_id'];
 // Process actions
 $success_message = '';
 $error_message = '';
+
+// Check for success/error messages in session (from redirects)
+if(isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if(isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
 
 // Get the FelixBus company wallet
 $company_wallet_query = "SELECT w.id, w.balance, u.username, u.first_name, u.last_name 
@@ -37,9 +45,13 @@ if(isset($_POST['withdraw_funds']) && $company_wallet) {
     $reference = $conn->real_escape_string($_POST['reference']);
     
     if($amount <= 0) {
-        $error_message = "Amount must be greater than zero.";
+        $_SESSION['error_message'] = "Amount must be greater than zero.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+        exit;
     } elseif($amount > $company_wallet['balance']) {
-        $error_message = "Insufficient funds in company wallet.";
+        $_SESSION['error_message'] = "Insufficient funds in company wallet.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+        exit;
     } else {
         // Begin transaction
         $conn->begin_transaction();
@@ -61,15 +73,19 @@ if(isset($_POST['withdraw_funds']) && $company_wallet) {
             
             // Commit transaction
             $conn->commit();
-            $success_message = "Successfully withdrew $" . number_format($amount, 2) . " from company wallet.";
+            $_SESSION['success_message'] = "Successfully withdrew $" . number_format($amount, 2) . " from company wallet.";
             
-            // Refresh company wallet data
-            $company_wallet_result = $conn->query($company_wallet_query);
-            $company_wallet = $company_wallet_result->fetch_assoc();
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+            exit;
         } catch (Exception $e) {
             // Rollback on error
             $conn->rollback();
-            $error_message = "Error: " . $e->getMessage();
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+            exit;
         }
     }
 }
@@ -136,6 +152,9 @@ if($company_wallet) {
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- Display any alerts -->
+    <?php echo displayAlert(); ?>
+
     <!-- Sidebar -->
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">

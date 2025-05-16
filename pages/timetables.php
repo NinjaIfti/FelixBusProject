@@ -337,7 +337,7 @@ $days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturd
                                             <i class="fas fa-hourglass-half text-yellow-500 mr-2"></i><?php echo $journey_time; ?>
                                         </td>
                                         <td class="py-4 px-6 text-sm font-medium text-center">
-                                            <a href="booking.php?schedule_id=<?php echo $schedule['id']; ?>" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded text-sm transition duration-300 inline-block">
+                                            <a href="booking.php?schedule_id=<?php echo $schedule['id']; ?>&travel_date=<?php echo date('Y-m-d'); ?>" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded text-sm transition duration-300 inline-block">
                                                 <i class="fas fa-ticket-alt mr-1"></i> Book Now
                                             </a>
                                         </td>

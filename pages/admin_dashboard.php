@@ -1,12 +1,10 @@
 <?php
 session_start();
 include_once('../database/basedados.h');
+include_once('../database/access_control.php');
 
-// Check if user is logged in and is admin or staff
-if(!isset($_SESSION['user_id']) || ($_SESSION['user_type'] !== 'admin' && $_SESSION['user_type'] !== 'staff')) {
-    header("Location: login.php");
-    exit;
-}
+// Check if user has access to admin pages
+checkPageAccess(['admin', 'staff']);
 
 // Get user information
 $conn = connectDatabase();
@@ -109,6 +107,9 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- Display any alerts -->
+    <?php echo displayAlert(); ?>
+
     <!-- Sidebar -->
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
@@ -141,6 +142,7 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                 <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
+                
                 <?php endif; ?>
                 <a href="index.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-home mr-3"></i> Main Website

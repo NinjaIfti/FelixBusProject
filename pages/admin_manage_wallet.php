@@ -17,6 +17,16 @@ $is_admin = ($_SESSION['user_type'] === 'admin');
 $success_message = '';
 $error_message = '';
 
+// Check for success/error messages in session (from redirects)
+if(isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if(isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
+
 // Get client information if client_id is set
 $client = null;
 $client_id = isset($_GET['client_id']) ? intval($_GET['client_id']) : 0;
@@ -42,7 +52,9 @@ if(isset($_POST['add_funds']) && $client) {
     $reference = $conn->real_escape_string($_POST['reference']);
     
     if($amount <= 0) {
-        $error_message = "Amount must be greater than zero.";
+        $_SESSION['error_message'] = "Amount must be greater than zero.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+        exit;
     } else {
         // Begin transaction
         $conn->begin_transaction();
@@ -64,15 +76,19 @@ if(isset($_POST['add_funds']) && $client) {
             
             // Commit transaction
             $conn->commit();
-            $success_message = "Successfully added $" . number_format($amount, 2) . " to client's wallet.";
+            $_SESSION['success_message'] = "Successfully added $" . number_format($amount, 2) . " to client's wallet.";
             
-            // Refresh client data
-            $client_result = $conn->query($client_query);
-            $client = $client_result->fetch_assoc();
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+            exit;
         } catch (Exception $e) {
             // Rollback on error
             $conn->rollback();
-            $error_message = "Error: " . $e->getMessage();
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+            exit;
         }
     }
 }
@@ -84,9 +100,13 @@ if(isset($_POST['withdraw_funds']) && $client) {
     $reference = $conn->real_escape_string($_POST['reference']);
     
     if($amount <= 0) {
-        $error_message = "Amount must be greater than zero.";
+        $_SESSION['error_message'] = "Amount must be greater than zero.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+        exit;
     } elseif($amount > $client['balance']) {
-        $error_message = "Insufficient funds in client's wallet.";
+        $_SESSION['error_message'] = "Insufficient funds in client's wallet.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+        exit;
     } else {
         // Begin transaction
         $conn->begin_transaction();
@@ -108,15 +128,19 @@ if(isset($_POST['withdraw_funds']) && $client) {
             
             // Commit transaction
             $conn->commit();
-            $success_message = "Successfully withdrew $" . number_format($amount, 2) . " from client's wallet.";
+            $_SESSION['success_message'] = "Successfully withdrew $" . number_format($amount, 2) . " from client's wallet.";
             
-            // Refresh client data
-            $client_result = $conn->query($client_query);
-            $client = $client_result->fetch_assoc();
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+            exit;
         } catch (Exception $e) {
             // Rollback on error
             $conn->rollback();
-            $error_message = "Error: " . $e->getMessage();
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"] . "?client_id=" . $client_id));
+            exit;
         }
     }
 }

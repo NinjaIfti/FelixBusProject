@@ -1,8 +1,9 @@
 <?php
 session_start();
 include_once('../database/basedados.h');
+include_once('../database/access_control.php');
 
-// Check if user is logged in
+// Check if user is logged in and is a client
 if(!isset($_SESSION['user_id'])) {
     // Save booking info in session for after login
     if(isset($_GET['schedule_id']) && isset($_GET['travel_date'])) {
@@ -14,6 +15,9 @@ if(!isset($_SESSION['user_id'])) {
     header("Location: login.php?redirect=booking");
     exit;
 }
+
+// Use access control utility to check if user is a client
+checkPageAccess(['client']);
 
 // Connect to database
 $conn = connectDatabase();
@@ -59,34 +63,43 @@ $plan_name = 'Standard'; // Default plan name
 $standard_price = $schedule['base_price'];
 
 // Define the fixed prices for premium and business classes (additional cost)
+$none_plan_price = 0;
 $standard_plan_price = 15;
 $premium_plan_price = 25;
 $business_plan_price = 40;
 
-// Check if a plan was selected
-if (isset($_SESSION['selected_plan'])) {
-    switch ($_SESSION['selected_plan']) {
-        case 'premium':
-            $plan_name = 'Premium';
-            $plan_price = $premium_plan_price;
-            $ticket_price = $standard_price + $premium_plan_price;
-            break;
-        case 'business':
-            $plan_name = 'Business';
-            $plan_price = $business_plan_price;
-            $ticket_price = $standard_price + $business_plan_price;
-            break;
-        default:
-            // Standard plan (default)
-            $plan_name = 'Standard';
-            $plan_price = $standard_plan_price;
-            $ticket_price = $standard_price + $standard_plan_price;
-            break;
-    }
+// Check if a package was selected in the form
+if(isset($_POST['selected_package'])) {
+    $selected_package = $_POST['selected_package'];
+    $_SESSION['selected_plan'] = $selected_package;
 } else {
-    // If no plan selected, use standard pricing
-    $plan_price = $standard_plan_price;
-    $ticket_price = $standard_price + $standard_plan_price;
+    // Check if a plan was previously selected in session
+    $selected_package = isset($_SESSION['selected_plan']) ? $_SESSION['selected_plan'] : 'standard';
+}
+
+// Set pricing based on selected package
+switch($selected_package) {
+    case 'premium':
+        $plan_name = 'Premium';
+        $plan_price = $premium_plan_price;
+        $ticket_price = $standard_price + $premium_plan_price;
+        break;
+    case 'business':
+        $plan_name = 'Business';
+        $plan_price = $business_plan_price;
+        $ticket_price = $standard_price + $business_plan_price;
+        break;
+    case 'none':
+        $plan_name = 'None';
+        $plan_price = $none_plan_price;
+        $ticket_price = $standard_price;
+        break;
+    default:
+        // Standard plan (default)
+        $plan_name = 'Standard';
+        $plan_price = $standard_plan_price;
+        $ticket_price = $standard_price + $standard_plan_price;
+        break;
 }
 
 // Check if there are available seats
@@ -407,6 +420,82 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                         </div>
                     </div>
                     
+                    <!-- Date Selection -->
+                    <div class="border-b border-gray-700 pb-4 mb-4">
+                        <label for="travel_date" class="block text-sm font-medium text-gray-300 mb-2">Travel Date</label>
+                        <input type="date" id="travel_date" name="travel_date" 
+                               class="bg-gray-700 text-white px-4 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
+                               value="<?php echo $travel_date; ?>" 
+                               min="<?php echo date('Y-m-d'); ?>"
+                               onchange="updateBookingUrl(this.value)">
+                        <p class="text-xs text-gray-400 mt-1">Please select your preferred travel date</p>
+                    </div>
+                    
+                    <!-- Package Selection -->
+                    <div class="border-b border-gray-700 pb-4 mb-4">
+                        <label for="package" class="block text-sm font-medium text-gray-300 mb-2">Travel Class</label>
+                        <div class="grid grid-cols-4 gap-4" x-data="{ selectedPackage: 'standard' }">
+                            <div class="bg-gray-700 border rounded-lg p-3 cursor-pointer" 
+                                 :class="selectedPackage === 'none' ? 'border-red-500' : 'border-gray-600'"
+                                 @click="selectedPackage = 'none'; updatePackage('none', <?php echo $standard_price; ?>, <?php echo $none_plan_price; ?>)">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-semibold">No Class</span>
+                                    <span class="text-red-500">+$<?php echo number_format($none_plan_price, 2); ?></span>
+                                </div>
+                                <ul class="text-xs text-gray-400 list-disc pl-4">
+                                    <li>Basic seating</li>
+                                    <li>No extras included</li>
+                                    <li>Base fare only</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-700 border rounded-lg p-3 cursor-pointer" 
+                                 :class="selectedPackage === 'standard' ? 'border-red-500' : 'border-gray-600'"
+                                 @click="selectedPackage = 'standard'; updatePackage('standard', <?php echo $standard_price; ?>, <?php echo $standard_plan_price; ?>)">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-semibold">Standard</span>
+                                    <span class="text-red-500">+$<?php echo number_format($standard_plan_price, 2); ?></span>
+                                </div>
+                                <ul class="text-xs text-gray-400 list-disc pl-4">
+                                    <li>Comfortable seating</li>
+                                    <li>Air conditioning</li>
+                                    <li>Basic amenities</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-700 border rounded-lg p-3 cursor-pointer"
+                                 :class="selectedPackage === 'premium' ? 'border-red-500' : 'border-gray-600'"
+                                 @click="selectedPackage = 'premium'; updatePackage('premium', <?php echo $standard_price; ?>, <?php echo $premium_plan_price; ?>)">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-semibold">Premium</span>
+                                    <span class="text-red-500">+$<?php echo number_format($premium_plan_price, 2); ?></span>
+                                </div>
+                                <ul class="text-xs text-gray-400 list-disc pl-4">
+                                    <li>Extra legroom</li>
+                                    <li>WiFi access</li>
+                                    <li>Power outlets</li>
+                                    <li>Priority boarding</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-700 border rounded-lg p-3 cursor-pointer"
+                                 :class="selectedPackage === 'business' ? 'border-red-500' : 'border-gray-600'"
+                                 @click="selectedPackage = 'business'; updatePackage('business', <?php echo $standard_price; ?>, <?php echo $business_plan_price; ?>)">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-semibold">Business</span>
+                                    <span class="text-red-500">+$<?php echo number_format($business_plan_price, 2); ?></span>
+                                </div>
+                                <ul class="text-xs text-gray-400 list-disc pl-4">
+                                    <li>Premium seating</li>
+                                    <li>Complimentary snacks</li>
+                                    <li>Dedicated service</li>
+                                    <li>Flexible booking</li>
+                                </ul>
+                            </div>
+                            <input type="hidden" name="selected_package" id="selected_package" value="standard">
+                        </div>
+                    </div>
+                    
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <p class="text-sm text-gray-400">Departure</p>
@@ -454,15 +543,15 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     <div class="border-b border-gray-700 pb-4 mb-4">
                         <div class="flex justify-between mb-2">
                             <span class="text-gray-400">Base Ticket Price</span>
-                            <span class="text-white font-semibold">$<?php echo number_format($standard_price, 2); ?></span>
+                            <span class="text-white font-semibold" id="base-price">$<?php echo number_format($standard_price, 2); ?></span>
                         </div>
                         <div class="flex justify-between mb-2">
                             <span class="text-gray-400">Travel Class</span>
-                            <span class="text-red-500 font-semibold"><?php echo $plan_name; ?></span>
+                            <span class="text-red-500 font-semibold" id="package-name"><?php echo $plan_name; ?></span>
                         </div>
                         <div class="flex justify-between mb-2">
                             <span class="text-gray-400">Class Price</span>
-                            <span class="text-white font-semibold">$<?php echo number_format($plan_price, 2); ?></span>
+                            <span class="text-white font-semibold" id="package-price">$<?php echo number_format($plan_price, 2); ?></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-400">Service Fee</span>
@@ -472,7 +561,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     
                     <div class="flex justify-between mb-6">
                         <span class="text-white font-semibold">Total</span>
-                        <span class="text-xl text-red-500 font-bold">$<?php echo number_format($ticket_price, 2); ?></span>
+                        <span class="text-xl text-red-500 font-bold" id="total-price">$<?php echo number_format($ticket_price, 2); ?></span>
                     </div>
                     
                     <div class="bg-gray-900 p-4 rounded-lg mb-6 border border-gray-700">
@@ -482,19 +571,20 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-400">After Transaction</span>
-                            <span class="text-white font-semibold">$<?php echo number_format($balance - $ticket_price, 2); ?></span>
+                            <span class="text-white font-semibold" id="balance-after">$<?php echo number_format($balance - $ticket_price, 2); ?></span>
                         </div>
                     </div>
                     
                     <?php if(!$success_message): ?>
-                    <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?schedule_id=$schedule_id&travel_date=$travel_date"); ?>">
+                    <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?schedule_id=$schedule_id&travel_date=$travel_date"); ?>" id="booking-form">
                         <div class="mb-4">
                             <div class="flex items-center mb-4">
                                 <input type="checkbox" id="terms" name="terms" class="h-4 w-4 text-red-600 bg-gray-700 border-gray-600" required>
                                 <label for="terms" class="ml-2 block text-gray-300 text-sm">I agree to the Terms & Conditions</label>
                             </div>
                         </div>
-                        <button type="submit" name="book" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full
+                        <input type="hidden" name="selected_package" id="form-selected-package" value="standard">
+                        <button type="submit" name="book" id="booking-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline w-full
                                   <?php echo ($balance < $ticket_price) ? 'opacity-50 cursor-not-allowed' : ''; ?>"
                                   <?php echo ($balance < $ticket_price) ? 'disabled' : ''; ?>>
                             <?php echo ($balance < $ticket_price) ? 'Insufficient Funds' : 'Complete Booking'; ?>
@@ -520,6 +610,59 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
             <p>&copy; <?php echo date('Y'); ?> FelixBus. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Function to update package prices
+        function updatePackage(packageType, basePrice, packagePrice) {
+            // Update the hidden form field
+            document.getElementById('form-selected-package').value = packageType;
+            document.getElementById('selected_package').value = packageType;
+            
+            // Update display fields
+            let packageName = document.getElementById('package-name');
+            let packagePriceElement = document.getElementById('package-price');
+            let totalPrice = document.getElementById('total-price');
+            let balanceAfter = document.getElementById('balance-after');
+            
+            // Format the name for display
+            let displayName = packageType.charAt(0).toUpperCase() + packageType.slice(1);
+            packageName.textContent = displayName;
+            
+            // Format price for display
+            packagePriceElement.textContent = '$' + packagePrice.toFixed(2);
+            
+            // Calculate and update total price
+            let total = basePrice + packagePrice;
+            totalPrice.textContent = '$' + total.toFixed(2);
+            
+            // Calculate new balance after purchase
+            let currentBalance = <?php echo $balance; ?>;
+            let newBalance = currentBalance - total;
+            balanceAfter.textContent = '$' + newBalance.toFixed(2);
+            
+            // Update booking button state based on new price
+            let bookingButton = document.getElementById('booking-button');
+            if (newBalance < 0) {
+                bookingButton.classList.add('opacity-50', 'cursor-not-allowed');
+                bookingButton.setAttribute('disabled', '');
+                bookingButton.textContent = 'Insufficient Funds';
+            } else {
+                bookingButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                bookingButton.removeAttribute('disabled');
+                bookingButton.textContent = 'Complete Booking';
+            }
+        }
+        
+        // Function to update URL when travel date changes
+        function updateBookingUrl(newDate) {
+            // Get the current URL and update the travel_date parameter
+            let url = new URL(window.location.href);
+            url.searchParams.set('travel_date', newDate);
+            
+            // Reload the page with the new date
+            window.location.href = url.toString();
+        }
+    </script>
 </body>
 </html>
 <?php $conn->close(); ?> 

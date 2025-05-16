@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once('../database/basedados.h');
+include_once('../database/access_control.php');
 
 // Fetch alerts/promotions
 $conn = connectDatabase();
@@ -95,6 +96,9 @@ $alerts_result = $conn->query($alerts_query);
     </style>
 </head>
 <body class="bg-gray-900 min-h-screen text-gray-100">
+    <!-- Display any alerts -->
+    <?php echo displayAlert(); ?>
+
     <!-- Navigation -->
     <nav class="bg-black text-white shadow-lg">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">

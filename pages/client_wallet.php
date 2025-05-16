@@ -37,57 +37,107 @@ $current_balance = $wallet['balance'];
 $success_message = '';
 $error_message = '';
 
+// Check for success/error messages in session (from redirects)
+if(isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if(isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
+
 if($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
     $amount = floatval($_POST['amount'] ?? 0);
     
     if($action === 'deposit' && $amount > 0) {
-        // Add funds to wallet
-        $update_wallet = "UPDATE wallets SET balance = balance + $amount WHERE id = $wallet_id";
-        
-        if($conn->query($update_wallet) === TRUE) {
-            // Log transaction
-            $transaction_type = 'deposit';
-            $reference = "Manual deposit";
+        // Begin transaction to ensure data integrity
+        $conn->begin_transaction();
+        try {
+            // Add funds to wallet
+            $update_wallet = "UPDATE wallets SET balance = balance + $amount WHERE id = $wallet_id";
             
-            $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                               VALUES ($wallet_id, $amount, '$transaction_type', '$reference')";
-            
-            if($conn->query($log_transaction) === TRUE) {
-                $success_message = "Successfully added $" . number_format($amount, 2) . " to your wallet.";
+            if($conn->query($update_wallet) === TRUE) {
+                // Log transaction
+                $transaction_type = 'deposit';
+                $reference = "Manual deposit";
+                
+                $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
+                                VALUES ($wallet_id, $amount, '$transaction_type', '$reference')";
+                
+                if($conn->query($log_transaction) === TRUE) {
+                    // Commit the transaction
+                    $conn->commit();
+                    $_SESSION['success_message'] = "Successfully added $" . number_format($amount, 2) . " to your wallet.";
+                    
+                    // Redirect to prevent form resubmission
+                    header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+                    exit;
+                } else {
+                    throw new Exception("Error logging transaction: " . $conn->error);
+                }
             } else {
-                $error_message = "Error logging transaction: " . $conn->error;
+                throw new Exception("Error updating wallet: " . $conn->error);
             }
-        } else {
-            $error_message = "Error updating wallet: " . $conn->error;
+        } catch (Exception $e) {
+            // Rollback the transaction on error
+            $conn->rollback();
+            $_SESSION['error_message'] = $e->getMessage();
+            
+            // Redirect to prevent form resubmission
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+            exit;
         }
     } elseif($action === 'withdraw' && $amount > 0) {
         // Check if sufficient funds
         if($amount <= $current_balance) {
-            // Withdraw funds from wallet
-            $update_wallet = "UPDATE wallets SET balance = balance - $amount WHERE id = $wallet_id";
-            
-            if($conn->query($update_wallet) === TRUE) {
-                // Log transaction
-                $transaction_type = 'withdrawal';
-                $reference = "Manual withdrawal";
+            // Begin transaction
+            $conn->begin_transaction();
+            try {
+                // Withdraw funds from wallet
+                $update_wallet = "UPDATE wallets SET balance = balance - $amount WHERE id = $wallet_id";
                 
-                $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                   VALUES ($wallet_id, $amount, '$transaction_type', '$reference')";
-                
-                if($conn->query($log_transaction) === TRUE) {
-                    $success_message = "Successfully withdrawn $" . number_format($amount, 2) . " from your wallet.";
+                if($conn->query($update_wallet) === TRUE) {
+                    // Log transaction
+                    $transaction_type = 'withdrawal';
+                    $reference = "Manual withdrawal";
+                    
+                    $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
+                                    VALUES ($wallet_id, $amount, '$transaction_type', '$reference')";
+                    
+                    if($conn->query($log_transaction) === TRUE) {
+                        // Commit the transaction
+                        $conn->commit();
+                        $_SESSION['success_message'] = "Successfully withdrawn $" . number_format($amount, 2) . " from your wallet.";
+                        
+                        // Redirect to prevent form resubmission
+                        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+                        exit;
+                    } else {
+                        throw new Exception("Error logging transaction: " . $conn->error);
+                    }
                 } else {
-                    $error_message = "Error logging transaction: " . $conn->error;
+                    throw new Exception("Error updating wallet: " . $conn->error);
                 }
-            } else {
-                $error_message = "Error updating wallet: " . $conn->error;
+            } catch (Exception $e) {
+                // Rollback the transaction on error
+                $conn->rollback();
+                $_SESSION['error_message'] = $e->getMessage();
+                
+                // Redirect to prevent form resubmission
+                header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+                exit;
             }
         } else {
-            $error_message = "Insufficient funds for withdrawal.";
+            $_SESSION['error_message'] = "Insufficient funds for withdrawal.";
+            header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+            exit;
         }
     } else {
-        $error_message = "Invalid amount or action.";
+        $_SESSION['error_message'] = "Invalid amount or action.";
+        header("Location: " . htmlspecialchars($_SERVER["PHP_SELF"]));
+        exit;
     }
 }
 
@@ -132,9 +182,9 @@ $transactions_result = $conn->query($transactions_query);
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="client_routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="client_timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="client_prices.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
                     <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>

@@ -1,12 +1,10 @@
 <?php
 session_start();
 include_once('../database/basedados.h');
+include_once('../database/access_control.php');
 
-// Check if user is authenticated and is a client
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: login.php");
-    exit();
-}
+// Check if user has access to client pages
+checkPageAccess(['client']);
 
 $conn = connectDatabase();
 $user_id = $_SESSION['user_id'];
@@ -90,6 +88,9 @@ $transactions_result = $conn->query($transactions_query);
     </style>
 </head>
 <body class="bg-gray-900 min-h-screen text-gray-100">
+    <!-- Display any alerts -->
+    <?php echo displayAlert(); ?>
+    
     <!-- Navigation -->
     <nav class="bg-black p-4">
         <div class="container mx-auto flex justify-between items-center">
