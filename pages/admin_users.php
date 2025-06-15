@@ -1,6 +1,9 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
+
+// Include security check
+include_once('admin_security_check.php');
 
 // Check if user is logged in and is admin or staff
 if(!isset($_SESSION['user_id']) || ($_SESSION['user_type'] !== 'admin' && $_SESSION['user_type'] !== 'staff')) {
@@ -80,26 +83,28 @@ if($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     
-    // Delete user (admin only)
-    if(isset($_POST['delete_user'])) {
-        $delete_id = intval($_POST['user_id']);
+    // Block/Unblock user (admin only)
+    if(isset($_POST['toggle_user_status'])) {
+        $user_id_to_toggle = intval($_POST['user_id']);
+        $new_status = $_POST['new_status'];
         
-        // Only allow deleting clients for safety
-        $check_query = "SELECT user_type FROM users WHERE id = $delete_id";
+        // Only allow toggling clients for safety
+        $check_query = "SELECT user_type FROM users WHERE id = $user_id_to_toggle";
         $check_result = $conn->query($check_query);
-        $user_to_delete = $check_result->fetch_assoc();
+        $user_to_toggle = $check_result->fetch_assoc();
         
-        if($user_to_delete['user_type'] === 'admin' && $delete_id !== $user_id) {
-            $error_message = "Cannot delete other admin users.";
-        } else if($delete_id === $user_id) {
-            $error_message = "Cannot delete your own account.";
+        if($user_to_toggle['user_type'] === 'admin' && $user_id_to_toggle !== $user_id) {
+            $error_message = "Cannot block other admin users.";
+        } else if($user_id_to_toggle === $user_id) {
+            $error_message = "Cannot block your own account.";
         } else {
-            $delete_query = "DELETE FROM users WHERE id = $delete_id";
+            $toggle_query = "UPDATE users SET status = '$new_status' WHERE id = $user_id_to_toggle";
             
-            if($conn->query($delete_query) === TRUE) {
-                $success_message = "User deleted successfully.";
+            if($conn->query($toggle_query) === TRUE) {
+                $status_message = $new_status === 'active' ? 'unblocked' : 'blocked';
+                $success_message = "User $status_message successfully.";
             } else {
-                $error_message = "Error deleting user: " . $conn->error;
+                $error_message = "Error updating user status: " . $conn->error;
             }
         }
     }
@@ -148,32 +153,32 @@ if($wallets_result) {
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
-                <a href="admin_dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
+                <a href="admin_painel.php" class="text-2xl font-bold mb-8 flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="admin_dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_painel.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
                 <a href="admin_users.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="admin_routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_rotas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="admin_tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_bilhetes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="admin_manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_gerir_carteira.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="admin_company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_carteira_empresa.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_alertas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
@@ -243,6 +248,7 @@ if($wallets_result) {
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</th>
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet Balance</th>
                                     <th class="py-3 px-4 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -272,6 +278,12 @@ if($wallets_result) {
                                                     <?php echo ucfirst($user['user_type']); ?>
                                                 </span>
                                             </td>
+                                            <td class="py-4 px-4 border-b border-gray-200 text-sm">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                                <?php echo $user['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                                    <?php echo ucfirst($user['status']); ?>
+                                                </span>
+                                            </td>
                                             <td class="py-4 px-4 border-b border-gray-200 text-sm text-gray-500">
                                                 <?php echo date('M j, Y', strtotime($user['created_at'])); ?>
                                             </td>
@@ -295,10 +307,14 @@ if($wallets_result) {
                                                 <?php if($is_admin && $user['id'] !== $user_id): ?>
                                                 <button 
                                                     type="button" 
-                                                    onclick="confirmDelete(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['username']); ?>')" 
-                                                    class="text-red-600 hover:text-red-900"
+                                                    onclick="confirmToggleStatus(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['username']); ?>', '<?php echo $user['status']; ?>')" 
+                                                    class="<?php echo $user['status'] === 'active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'; ?>"
                                                 >
-                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                    <?php if($user['status'] === 'active'): ?>
+                                                        <i class="fas fa-ban"></i> Block
+                                                    <?php else: ?>
+                                                        <i class="fas fa-check-circle"></i> Unblock
+                                                    <?php endif; ?>
                                                 </button>
                                                 <?php endif; ?>
                                             </td>
@@ -306,7 +322,7 @@ if($wallets_result) {
                                     <?php endwhile; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="6" class="py-4 px-4 border-b border-gray-200 text-center text-gray-500">
+                                        <td colspan="7" class="py-4 px-4 border-b border-gray-200 text-center text-gray-500">
                                             No users found.
                                         </td>
                                     </tr>
@@ -426,27 +442,28 @@ if($wallets_result) {
         </div>
     </div>
 
-    <!-- Delete User Modal -->
-    <div id="deleteUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+    <!-- Toggle User Status Modal -->
+    <div id="toggleStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <div class="flex justify-between items-center pb-3">
-                    <h3 class="text-lg font-medium text-gray-900">Confirm Delete</h3>
-                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('deleteUserModal')">
+                    <h3 class="text-lg font-medium text-gray-900">Confirm Status Change</h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('toggleStatusModal')">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="mt-2">
-                    <p class="text-gray-700">Are you sure you want to delete the user <span id="deleteUserName" class="font-semibold"></span>? This action cannot be undone.</p>
+                    <p class="text-gray-700" id="toggleStatusMessage"></p>
                 </div>
-                <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="deleteUserForm">
-                    <input type="hidden" name="user_id" id="delete_user_id">
+                <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="toggleStatusForm">
+                    <input type="hidden" name="user_id" id="toggle_user_id">
+                    <input type="hidden" name="new_status" id="new_status">
                     <div class="mt-4 flex justify-end">
-                        <button type="button" class="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="closeModal('deleteUserModal')">
+                        <button type="button" class="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="closeModal('toggleStatusModal')">
                             Cancel
                         </button>
-                        <button type="submit" name="delete_user" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                            Delete
+                        <button type="submit" name="toggle_user_status" id="confirmToggleBtn" class="px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Confirm
                         </button>
                     </div>
                 </form>
@@ -483,12 +500,32 @@ if($wallets_result) {
             openModal('editUserModal');
         }
         
-        function confirmDelete(userId, username) {
-            document.getElementById('delete_user_id').value = userId;
-            document.getElementById('deleteUserName').textContent = username;
-            openModal('deleteUserModal');
+        function confirmToggleStatus(userId, username, currentStatus) {
+            document.getElementById('toggle_user_id').value = userId;
+            
+            const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
+            document.getElementById('new_status').value = newStatus;
+            
+            const action = currentStatus === 'active' ? 'block' : 'unblock';
+            document.getElementById('toggleStatusMessage').textContent = `Are you sure you want to ${action} the user ${username}?`;
+            
+            const confirmBtn = document.getElementById('confirmToggleBtn');
+            if(newStatus === 'blocked') {
+                confirmBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                confirmBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                confirmBtn.innerHTML = '<i class="fas fa-ban mr-2"></i> Block';
+            } else {
+                confirmBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                confirmBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                confirmBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Unblock';
+            }
+            
+            openModal('toggleStatusModal');
         }
     </script>
+    
+    <!-- Session security checker -->
+    <script src="admin_session_check.js"></script>
 </body>
 </html>
 <?php $conn->close(); ?> 

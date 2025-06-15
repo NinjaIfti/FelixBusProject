@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is logged in and is admin or staff
 if(!isset($_SESSION['user_id']) || ($_SESSION['user_type'] !== 'admin' && $_SESSION['user_type'] !== 'staff')) {
@@ -158,32 +158,32 @@ $tickets_result = $conn->query($tickets_query);
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
-                <a href="admin_dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
+                <a href="admin_painel.php" class="text-2xl font-bold mb-8 flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="admin_dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_painel.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
                 <a href="admin_users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="admin_routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_rotas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="admin_tickets.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
+                <a href="admin_bilhetes.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="admin_manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_gerir_carteira.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="admin_company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_carteira_empresa.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_alertas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
@@ -261,7 +261,7 @@ $tickets_result = $conn->query($tickets_query);
                         <h2 class="text-xl font-semibold text-gray-800">All Tickets</h2>
                     </div>
                     <div>
-                        <a href="client_routes.php" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                        <a href="cliente_rotas.php" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
                             <i class="fas fa-plus mr-2"></i> Book New Ticket
                         </a>
                     </div>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
@@ -51,7 +51,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
     $amount = floatval($_POST['amount'] ?? 0);
     
-    if($action === 'deposit' && $amount > 0) {
+    if($action === 'deposito' && $amount > 0) {
         // Begin transaction to ensure data integrity
         $conn->begin_transaction();
         try {
@@ -60,7 +60,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             
             if($conn->query($update_wallet) === TRUE) {
                 // Log transaction
-                $transaction_type = 'deposit';
+                $transaction_type = 'deposito';
                 $reference = "Manual deposit";
                 
                 $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
@@ -182,10 +182,10 @@ $transactions_result = $conn->query($transactions_query);
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="rotas.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="horários.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="preços.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contactos.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -202,10 +202,10 @@ $transactions_result = $conn->query($transactions_query);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="cliente_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
@@ -248,7 +248,7 @@ $transactions_result = $conn->query($transactions_query);
                     <p class="text-4xl font-bold text-white mb-4">$<?php echo number_format($wallet['balance'], 2); ?></p>
                     
                     <div class="border-t border-gray-700 pt-4">
-                        <a href="client_dashboard.php" class="text-red-500 hover:text-red-400 flex items-center">
+                        <a href="cliente_painel.php" class="text-red-500 hover:text-red-400 flex items-center">
                             <i class="fas fa-chevron-left mr-2"></i> Back to Dashboard
                         </a>
                     </div>
@@ -316,7 +316,7 @@ $transactions_result = $conn->query($transactions_query);
                                         <td class="px-4 py-3 text-sm">
                                             <span class="px-2 py-1 text-xs rounded-full 
                                             <?php 
-                                                echo $transaction['transaction_type'] === 'deposit' ? 'bg-green-900 text-green-300' : 
+                                                echo $transaction['transaction_type'] === 'deposito' ? 'bg-green-900 text-green-300' : 
                                                     ($transaction['transaction_type'] === 'refund' ? 'bg-indigo-900 text-indigo-300' : 
                                                     'bg-red-900 text-red-300'); 
                                             ?>">
@@ -328,10 +328,10 @@ $transactions_result = $conn->query($transactions_query);
                                         </td>
                                         <td class="px-4 py-3 text-sm text-right 
                                         <?php 
-                                            echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') 
+                                            echo ($transaction['transaction_type'] === 'deposito' || $transaction['transaction_type'] === 'refund') 
                                                 ? 'text-green-400' : 'text-red-400'; 
                                         ?>">
-                                            <?php echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
+                                            <?php echo ($transaction['transaction_type'] === 'deposito' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
                                             $<?php echo number_format(abs($transaction['amount']), 2); ?>
                                         </td>
                                     </tr>

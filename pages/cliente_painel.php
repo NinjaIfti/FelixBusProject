@@ -1,7 +1,7 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
-include_once('../database/access_control.php');
+include_once('../basedados/basedados.h');
+include_once('controle_de_acesso.php');
 
 // Check if user has access to client pages
 checkPageAccess(['client']);
@@ -125,7 +125,7 @@ $transactions_result = $conn->query($transactions_query);
                     </div>
                 </div>
                 <div class="mt-6">
-                    <a href="client_wallet.php" class="text-sm text-green-400 hover:text-green-300 flex items-center">
+                    <a href="cliente_carteira.php" class="text-sm text-green-400 hover:text-green-300 flex items-center">
                         <span>Manage Wallet</span>
                         <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
@@ -143,7 +143,7 @@ $transactions_result = $conn->query($transactions_query);
                     </div>
                 </div>
                 <div class="mt-6">
-                    <a href="client_tickets.php" class="text-sm text-blue-400 hover:text-blue-300 flex items-center">
+                    <a href="cliente_bilhetes.php" class="text-sm text-blue-400 hover:text-blue-300 flex items-center">
                         <span>View Tickets</span>
                         <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
@@ -161,7 +161,7 @@ $transactions_result = $conn->query($transactions_query);
                     </div>
                 </div>
                 <div class="mt-6">
-                    <a href="routes.php" class="text-sm text-purple-400 hover:text-purple-300 flex items-center">
+                    <a href="rotas.php" class="text-sm text-purple-400 hover:text-purple-300 flex items-center">
                         <span>Browse Routes</span>
                         <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
@@ -233,7 +233,7 @@ $transactions_result = $conn->query($transactions_query);
                     </div>
                     
                     <div class="mt-4">
-                        <a href="client_alerts.php" class="text-sm text-blue-400 hover:text-blue-300">View All Alerts</a>
+                        <a href="cliente_alertas.php" class="text-sm text-blue-400 hover:text-blue-300">View All Alerts</a>
                     </div>
                 <?php else: ?>
                     <div class="bg-gray-700 rounded-lg p-4 text-center">
@@ -263,7 +263,7 @@ $transactions_result = $conn->query($transactions_query);
                                         <td class="py-3">
                                             <span class="inline-block px-2 py-1 rounded text-xs font-semibold 
                                             <?php 
-                                                if($transaction['transaction_type'] == 'deposit') {
+                                                if($transaction['transaction_type'] == 'deposito') {
                                                     echo 'bg-green-900 text-green-300';
                                                 } elseif($transaction['transaction_type'] == 'withdrawal') {
                                                     echo 'bg-red-900 text-red-300';
@@ -280,14 +280,14 @@ $transactions_result = $conn->query($transactions_query);
                                         <td class="py-3 text-sm"><?php echo $transaction['reference'] ? htmlspecialchars($transaction['reference']) : '-'; ?></td>
                                         <td class="py-3 text-right font-medium 
                                         <?php 
-                                            if($transaction['transaction_type'] == 'deposit' || $transaction['transaction_type'] == 'refund') {
+                                            if($transaction['transaction_type'] == 'deposito' || $transaction['transaction_type'] == 'refund') {
                                                 echo 'text-green-400';
                                             } else {
                                                 echo 'text-red-400';
                                             }
                                         ?>">
                                             <?php 
-                                                if($transaction['transaction_type'] == 'deposit' || $transaction['transaction_type'] == 'refund') {
+                                                if($transaction['transaction_type'] == 'deposito' || $transaction['transaction_type'] == 'refund') {
                                                     echo '+';
                                                 } else {
                                                     echo '-';
@@ -302,12 +302,12 @@ $transactions_result = $conn->query($transactions_query);
                     </div>
                     
                     <div class="mt-4">
-                        <a href="client_wallet.php" class="text-sm text-blue-400 hover:text-blue-300">View All Transactions</a>
+                        <a href="cliente_carteira.php" class="text-sm text-blue-400 hover:text-blue-300">View All Transactions</a>
                     </div>
                 <?php else: ?>
                     <div class="bg-gray-700 rounded-lg p-4 text-center">
                         <p class="text-gray-400">No wallet transactions yet.</p>
-                        <a href="client_wallet.php" class="inline-block mt-3 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-300">
+                        <a href="cliente_carteira.php" class="inline-block mt-3 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-300">
                             Add Funds
                         </a>
                     </div>

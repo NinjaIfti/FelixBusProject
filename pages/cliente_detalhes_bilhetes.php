@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
@@ -38,7 +38,7 @@ function determineTicketClass($ticket_price, $base_price = null) {
 
 // Check if ticket ID is provided
 if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: client_tickets.php");
+    header("Location: cliente_bilhetes.php");
     exit;
 }
 
@@ -59,7 +59,7 @@ $ticket_result = $conn->query($ticket_query);
 
 // Check if ticket exists and belongs to the user
 if(!$ticket_result || $ticket_result->num_rows == 0) {
-    header("Location: client_tickets.php");
+    header("Location: cliente_bilhetes.php");
     exit;
 }
 
@@ -76,13 +76,13 @@ $formatted_travel_date = date('l, F j, Y', strtotime($ticket['travel_date']));
 
 // Format days
 $days_mapping = [
-    '1' => 'Monday',
-    '2' => 'Tuesday',
-    '3' => 'Wednesday',
-    '4' => 'Thursday',
-    '5' => 'Friday',
-    '6' => 'Saturday',
-    '7' => 'Sunday'
+    '1' => 'Segunda',
+    '2' => 'Terça',
+    '3' => 'Quarta',
+    '4' => 'Quinta',
+    '5' => 'Sexta',
+    '6' => 'Sabado',
+    '7' => 'Domingo'
 ];
 
 $days_array = explode(', ', $ticket['days']);
@@ -123,10 +123,10 @@ $days_display = implode(', ', $days_text);
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="client_routes.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="cliente_rotas.php" class="hover:text-red-500 nav-link">Routes</a>
                     <a href="client_timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
                     <a href="client_prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="contactos.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -143,10 +143,10 @@ $days_display = implode(', ', $days_text);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="cliente_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
@@ -166,7 +166,7 @@ $days_display = implode(', ', $days_text);
     <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="client_tickets.php" class="text-red-500 hover:text-red-400">
+            <a href="cliente_bilhetes.php" class="text-red-500 hover:text-red-400">
                 <i class="fas fa-arrow-left mr-1"></i> Back to My Tickets
             </a>
         </div>

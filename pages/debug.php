@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if the user is an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
@@ -94,10 +94,10 @@ $response['recent_errors'] = $recent_errors;
             <div class="flex items-center space-x-4">
                 <a href="index.php" class="text-2xl font-bold">FelixBus</a>
                 <div class="hidden md:flex space-x-4">
-                    <a href="routes.php" class="hover:text-blue-200">Routes</a>
-                    <a href="timetables.php" class="hover:text-blue-200">Timetables</a>
-                    <a href="prices.php" class="hover:text-blue-200">Prices</a>
-                    <a href="contact.php" class="hover:text-blue-200">Contact</a>
+                    <a href="rotas.php" class="hover:text-blue-200">Routes</a>
+                    <a href="horários.php" class="hover:text-blue-200">Timetables</a>
+                    <a href="preços.php" class="hover:text-blue-200">Prices</a>
+                    <a href="contactos.php" class="hover:text-blue-200">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -114,8 +114,8 @@ $response['recent_errors'] = $recent_errors;
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl z-20">
-                        <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Admin Panel</a>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
+                        <a href="admin_painel.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Admin Panel</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-800 hover:bg-blue-500 hover:text-white">Logout</a>
                     </div>
                 </div>

@@ -1,19 +1,25 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if already logged in
 if(isset($_SESSION['user_id'])) {
     // Redirect based on user type
     if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'staff') {
-        header("Location: admin_dashboard.php");
+        header("Location: admin_painel.php");
     } else {
-        header("Location: client_dashboard.php");
+        header("Location: cliente_painel.php");
     }
     exit;
 }
 
 $error = '';
+
+// Check for security error message
+if(isset($_SESSION['security_error'])) {
+    $error = $_SESSION['security_error'];
+    unset($_SESSION['security_error']);
+}
 
 // Process login
 if($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -22,26 +28,49 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $conn->real_escape_string($_POST['username']);
     $password = $_POST['password'];
     
-    $sql = "SELECT id, username, password, user_type FROM users WHERE username = '$username'";
+    // Modified to ensure all users can log in without approval check
+    $sql = "SELECT id, username, password, user_type, status FROM users WHERE username = '$username'";
     $result = $conn->query($sql);
     
     if($result->num_rows == 1) {
         $user = $result->fetch_assoc();
         if(password_verify($password, $user['password'])) {
-            // Password is correct, set session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['user_type'] = $user['user_type'];
-            
-            // Redirect based on user type
-            if($user['user_type'] == 'admin') {
-                header("Location: admin_dashboard.php");
-            } elseif($user['user_type'] == 'staff') {
-                header("Location: admin_dashboard.php");  // Staff go to admin dashboard as well
+            // Check if user is blocked
+            if($user['status'] === 'blocked') {
+                $error = "Your account has been blocked. Please contact support.";
             } else {
-                header("Location: client_dashboard.php");
+                // Deactivate any existing sessions for this user
+                $deactivate_sql = "UPDATE active_sessions SET is_active = 0 WHERE user_id = {$user['id']}";
+                $conn->query($deactivate_sql);
+                
+                // Generate a new session token
+                $session_token = generateSessionToken();
+                
+                // Create a new active session
+                $user_agent = $conn->real_escape_string($_SERVER['HTTP_USER_AGENT']);
+                $ip_address = $conn->real_escape_string($_SERVER['REMOTE_ADDR']);
+                
+                $session_sql = "INSERT INTO active_sessions (user_id, session_token, user_agent, ip_address) 
+                                VALUES ({$user['id']}, '$session_token', '$user_agent', '$ip_address')";
+                $conn->query($session_sql);
+                
+                // Password is correct and user is active, set session variables
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['user_type'] = $user['user_type'];
+                $_SESSION['session_token'] = $session_token;
+                $_SESSION['last_activity'] = time();
+                
+                // Redirect based on user type
+                if($user['user_type'] == 'admin') {
+                    header("Location: admin_painel.php");
+                } elseif($user['user_type'] == 'staff') {
+                    header("Location: admin_painel.php");  // Staff go to admin dashboard as well
+                } else {
+                    header("Location: cliente_painel.php");
+                }
+                exit;
             }
-            exit;
         } else {
             $error = "Invalid password";
         }
@@ -138,15 +167,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-6">
-                    <a href="routes.php" class="nav-link hover:text-red-500">Routes</a>
-                    <a href="timetables.php" class="nav-link hover:text-red-500">Timetables</a>
-                    <a href="prices.php" class="nav-link hover:text-red-500">Prices</a>
-                    <a href="contact.php" class="nav-link hover:text-red-500">Contact</a>
+                    <a href="rotas.php" class="nav-link hover:text-red-500">Routes</a>
+                    <a href="horários.php" class="nav-link hover:text-red-500">Timetables</a>
+                    <a href="preços.php" class="nav-link hover:text-red-500">Prices</a>
+                    <a href="contactos.php" class="nav-link hover:text-red-500">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
                 <a href="login.php" class="nav-link text-red-500 font-medium">Login</a>
-                <a href="register.php" class="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition duration-300 btn-primary">Register</a>
+                <a href="registar.php" class="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition duration-300 btn-primary">Register</a>
             </div>
         </div>
     </nav>
@@ -207,7 +236,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </form>
                     <div class="mt-6 text-center">
-                        <p class="text-gray-400 text-sm">Don't have an account? <a href="register.php" class="text-red-500 hover:text-red-400 transition duration-300">Register now</a></p>
+                        <p class="text-gray-400 text-sm">Don't have an account? <a href="registar.php" class="text-red-500 hover:text-red-400 transition duration-300">Register now</a></p>
                     </div>
                 </div>
             </div>
@@ -231,10 +260,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div>
                     <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="routes.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
-                        <li><a href="timetables.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
-                        <li><a href="prices.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
-                        <li><a href="contact.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
+                        <li><a href="rotas.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
+                        <li><a href="horários.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
+                        <li><a href="preços.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
+                        <li><a href="contactos.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Terms & Conditions</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Privacy Policy</a></li>
                     </ul>

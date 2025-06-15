@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
@@ -43,10 +43,10 @@ $alerts_result = $conn->query($alerts_query);
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="rotas.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="horários.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="preços.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contactos.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -63,10 +63,10 @@ $alerts_result = $conn->query($alerts_query);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="cliente_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
@@ -86,7 +86,7 @@ $alerts_result = $conn->query($alerts_query);
     <div class="container mx-auto px-4 py-8 flex-1">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="client_dashboard.php" class="text-red-500 hover:text-red-400">
+            <a href="cliente_painel.php" class="text-red-500 hover:text-red-400">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>

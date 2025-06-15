@@ -1,7 +1,8 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
-include_once('../database/access_control.php');
+include_once('../basedados/basedados.h');
+include_once('controle_de_acesso.php');
+include_once('admin_security_check.php');
 
 // Check if user has access to admin pages
 checkPageAccess(['admin', 'staff']);
@@ -114,32 +115,32 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
-                <a href="admin_dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
+                <a href="admin_painel.php" class="text-2xl font-bold mb-8 flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span> 
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="admin_dashboard.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
+                <a href="admin_painel.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
                 <a href="admin_users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="admin_routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_rotas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="admin_tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_bilhetes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="admin_manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_gerir_carteira.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Wallets
                 </a>
                 <?php if($is_admin): ?>
-                <a href="admin_company_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_carteira_empresa.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_alertas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 
@@ -216,7 +217,7 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                         </div>
                         <p class="text-3xl font-bold text-white">$<?php echo number_format($company_wallet_balance, 2); ?></p>
                         <?php if($is_admin): ?>
-                        <a href="admin_company_wallet.php" class="text-red-400 hover:text-red-300 text-sm transition duration-300">View Details</a>
+                        <a href="admin_carteira_empresa.php" class="text-red-400 hover:text-red-300 text-sm transition duration-300">View Details</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -227,7 +228,7 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                     <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-xl font-semibold text-white">Recent Tickets</h2>
-                            <a href="admin_tickets.php" class="text-red-400 hover:text-red-300 text-sm font-medium transition duration-300">View All</a>
+                            <a href="admin_bilhetes.php" class="text-red-400 hover:text-red-300 text-sm font-medium transition duration-300">View All</a>
                         </div>
                         
                         <?php if($recent_tickets_result && $recent_tickets_result->num_rows > 0): ?>
@@ -326,9 +327,9 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                                             <td class="py-4 px-4 border-b border-gray-700 text-sm">
                                                 <span class="inline-block px-2 py-1 text-xs font-semibold rounded status-badge
                                                 <?php
-                                                    echo $transaction['transaction_type'] === 'deposit' ? 'bg-green-900 text-green-300' : 
+                                                    echo $transaction['transaction_type'] === 'deposito' ? 'bg-green-900 text-green-300' : 
                                                         ($transaction['transaction_type'] === 'withdrawal' ? 'bg-red-900 text-red-300' : 
-                                                        ($transaction['transaction_type'] === 'purchase' ? 'bg-blue-900 text-blue-300' : 'bg-yellow-900 text-yellow-300'));
+                                                        ($transaction['transaction_type'] === 'compra' ? 'bg-blue-900 text-blue-300' : 'bg-yellow-900 text-yellow-300'));
                                                 ?>">
                                                     <?php echo ucfirst($transaction['transaction_type']); ?>
                                                 </span>
@@ -341,9 +342,9 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
                                             </td>
                                             <td class="py-4 px-4 border-b border-gray-700 text-right text-sm font-medium 
                                             <?php
-                                                echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? 'text-green-400' : 'text-red-400';
+                                                echo ($transaction['transaction_type'] === 'deposito' || $transaction['transaction_type'] === 'refund') ? 'text-green-400' : 'text-red-400';
                                             ?>">
-                                                <?php echo ($transaction['transaction_type'] === 'deposit' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
+                                                <?php echo ($transaction['transaction_type'] === 'deposito' || $transaction['transaction_type'] === 'refund') ? '+' : '-'; ?>
                                                 $<?php echo number_format(abs($transaction['amount']), 2); ?>
                                             </td>
                                         </tr>
@@ -364,7 +365,13 @@ $recent_transactions_result = $conn->query($recent_transactions_query);
         document.getElementById('sidebar-toggle').addEventListener('click', function() {
             document.querySelector('.bg-black').classList.toggle('hidden');
         });
+        
+        // Initialize any charts or dashboard components
+        // ... any existing script ...
     </script>
+    
+    <!-- Session security checker -->
+    <script src="admin_session_check.js"></script>
 </body>
 </html>
 <?php $conn->close(); ?> 

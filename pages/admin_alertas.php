@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is authenticated and is an admin or staff
 if (!isset($_SESSION['user_id']) || ($_SESSION['user_type'] !== 'admin' && $_SESSION['user_type'] !== 'staff')) {
@@ -78,7 +78,7 @@ $alerts_result = $conn->query($alerts_query);
     <!-- Navigation -->
     <nav class="bg-black p-4">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="admin_dashboard.php" class="text-2xl font-bold flex items-center">
+            <a href="admin_painel.php" class="text-2xl font-bold flex items-center">
                 <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span> 
                 <span>Felix<span class="text-red-600">Bus</span></span>
             </a>
@@ -91,7 +91,7 @@ $alerts_result = $conn->query($alerts_query);
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold">Manage Client Alerts</h1>
-            <a href="admin_dashboard.php" class="bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-4 rounded-lg transition">
+            <a href="admin_painel.php" class="bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-4 rounded-lg transition">
                 <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
         </div>

@@ -1,14 +1,14 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if already logged in
 if(isset($_SESSION['user_id'])) {
     // Redirect based on user type
     if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'staff') {
-        header("Location: admin_dashboard.php");
+        header("Location: admin_painel.php");
     } else {
-        header("Location: client_dashboard.php");
+        header("Location: cliente_painel.php");
     }
     exit;
 }
@@ -183,15 +183,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-6">
-                    <a href="routes.php" class="nav-link hover:text-red-500">Routes</a>
-                    <a href="timetables.php" class="nav-link hover:text-red-500">Timetables</a>
-                    <a href="prices.php" class="nav-link hover:text-red-500">Prices</a>
-                    <a href="contact.php" class="nav-link hover:text-red-500">Contact</a>
+                    <a href="rotas.php" class="nav-link hover:text-red-500">Routes</a>
+                    <a href="horários.php" class="nav-link hover:text-red-500">Timetables</a>
+                    <a href="preços.php" class="nav-link hover:text-red-500">Prices</a>
+                    <a href="contactos.php" class="nav-link hover:text-red-500">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
                 <a href="login.php" class="nav-link hover:text-red-500">Login</a>
-                <a href="register.php" class="nav-link text-red-500 font-medium bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300 btn-primary">Register</a>
+                <a href="registar.php" class="nav-link text-red-500 font-medium bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300 btn-primary">Register</a>
             </div>
         </div>
     </nav>
@@ -345,10 +345,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div>
                     <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="routes.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
-                        <li><a href="timetables.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
-                        <li><a href="prices.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
-                        <li><a href="contact.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
+                        <li><a href="rotas.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
+                        <li><a href="horários.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
+                        <li><a href="preços.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
+                        <li><a href="contactos.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Terms & Conditions</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Privacy Policy</a></li>
                     </ul>

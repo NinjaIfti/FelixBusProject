@@ -1,7 +1,7 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
-include_once('../database/access_control.php');
+include_once('../basedados/basedados.h');
+include_once('controle_de_acesso.php');
 
 // Check if user has access to admin company wallet page
 checkPageAccess(['admin']);
@@ -114,9 +114,9 @@ $revenue_data = [];
 if($company_wallet) {
     $wallet_id = $company_wallet['id'];
     $revenue_query = "SELECT DATE(created_at) as date, 
-                            SUM(CASE WHEN transaction_type = 'deposit' THEN amount ELSE 0 END) as income,
+                            SUM(CASE WHEN transaction_type = 'deposito' THEN amount ELSE 0 END) as income,
                             SUM(CASE WHEN transaction_type = 'withdrawal' THEN amount ELSE 0 END) as expense,
-                            SUM(CASE WHEN transaction_type = 'deposit' THEN amount 
+                            SUM(CASE WHEN transaction_type = 'deposito' THEN amount 
                                  WHEN transaction_type = 'withdrawal' THEN -amount
                                  ELSE 0 END) as net_amount
                      FROM wallet_transactions 
@@ -159,32 +159,32 @@ if($company_wallet) {
     <div class="flex flex-1">
         <div class="bg-black text-white w-64 py-6 flex-shrink-0 hidden md:block">
             <div class="px-6">
-                <a href="admin_dashboard.php" class="text-2xl font-bold mb-8 flex items-center">
+                <a href="admin_painel.php" class="text-2xl font-bold mb-8 flex items-center">
                     <span class="text-red-600 mr-1"><i class="fas fa-bus"></i></span>
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
             </div>
             <nav class="mt-10">
-                <a href="admin_dashboard.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_painel.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
                 </a>
                 <a href="admin_users.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
-                <a href="admin_routes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_rotas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-route mr-3"></i> Routes
                 </a>
-                <a href="admin_tickets.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_bilhetes.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-ticket-alt mr-3"></i> Tickets
                 </a>
-                <a href="admin_manage_wallet.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_gerir_carteira.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-wallet mr-3"></i> Manage Client Wallets
                 </a>
                 <?php if($_SESSION['user_type'] === 'admin'): ?>
-                <a href="admin_company_wallet.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
+                <a href="admin_carteira_empresa.php" class="flex items-center py-3 px-6 bg-red-900 text-white nav-link">
                     <i class="fas fa-building mr-3"></i> Company Wallet
                 </a>
-                <a href="admin_alerts.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
+                <a href="admin_alertas.php" class="flex items-center py-3 px-6 hover:bg-gray-800 text-gray-300 hover:text-white nav-link">
                     <i class="fas fa-bullhorn mr-3"></i> Alerts
                 </a>
                 <?php endif; ?>
@@ -200,7 +200,7 @@ if($company_wallet) {
         <div class="flex-1">
             <!-- Top Bar -->
             <div class="bg-white shadow-md p-4 flex items-center justify-between md:hidden">
-                <a href="admin_dashboard.php" class="text-xl font-bold">FelixBus</a>
+                <a href="admin_painel.php" class="text-xl font-bold">FelixBus</a>
                 <button id="sidebar-toggle" class="p-2 rounded-md hover:bg-gray-100">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -337,7 +337,7 @@ if($company_wallet) {
                                                 $type = $transaction['transaction_type'];
                                                 $status_class = 'bg-gray-100 text-gray-800';
                                                 
-                                                if($type == 'deposit') {
+                                                if($type == 'deposito') {
                                                     $amount_class = 'text-green-600';
                                                     $status_class = 'bg-green-100 text-green-800';
                                                 } else if($type == 'withdrawal') {

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is logged in
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
@@ -77,10 +77,10 @@ $tickets_result = $conn->query($tickets_query);
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4 ml-8">
-                    <a href="routes.php" class="hover:text-red-500 nav-link">Routes</a>
-                    <a href="timetables.php" class="hover:text-red-500 nav-link">Timetables</a>
-                    <a href="prices.php" class="hover:text-red-500 nav-link">Prices</a>
-                    <a href="contact.php" class="hover:text-red-500 nav-link">Contact</a>
+                    <a href="rotas.php" class="hover:text-red-500 nav-link">Routes</a>
+                    <a href="horários.php" class="hover:text-red-500 nav-link">Timetables</a>
+                    <a href="preços.php" class="hover:text-red-500 nav-link">Prices</a>
+                    <a href="contactos.php" class="hover:text-red-500 nav-link">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -97,10 +97,10 @@ $tickets_result = $conn->query($tickets_query);
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
-                        <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                        <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                        <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="cliente_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                        <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                        <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
@@ -121,12 +121,12 @@ $tickets_result = $conn->query($tickets_query);
         <!-- Actions Bar -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <a href="client_dashboard.php" class="text-red-500 hover:text-red-400">
+                <a href="cliente_painel.php" class="text-red-500 hover:text-red-400">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
                 </a>
             </div>
             <div>
-                <a href="client_routes.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <a href="cliente_rotas.php" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
                     <i class="fas fa-search mr-2"></i> Find New Routes
                 </a>
             </div>
@@ -198,7 +198,7 @@ $tickets_result = $conn->query($tickets_query);
                                     
                                     <?php if($ticket['status'] === 'active'): ?>
                                     <div class="mt-4 pt-4 border-t border-gray-800 flex justify-end">
-                                        <a href="client_ticket_details.php?id=<?php echo $ticket['id']; ?>" class="text-red-500 hover:text-red-400 mr-4">
+                                        <a href="cliente_detalhes_bilhetes.php?id=<?php echo $ticket['id']; ?>" class="text-red-500 hover:text-red-400 mr-4">
                                             <i class="fas fa-info-circle mr-1"></i> Details
                                         </a>
                                         <a href="#" onclick="window.print()" class="text-red-500 hover:text-red-400">
@@ -218,7 +218,7 @@ $tickets_result = $conn->query($tickets_query);
                     </div>
                     <h3 class="text-xl font-semibold text-white mb-2">No Tickets Found</h3>
                     <p class="text-gray-400 mb-6">You haven't purchased any tickets yet.</p>
-                    <a href="client_routes.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                    <a href="cliente_rotas.php" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center">
                         <i class="fas fa-search mr-2"></i> Find Routes and Book Tickets
                     </a>
                 </div>

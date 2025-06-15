@@ -1,7 +1,7 @@
 <?php
 session_start();
-include_once('../database/basedados.h');
-include_once('../database/access_control.php');
+include_once('../basedados/basedados.h');
+include_once('controle_de_acesso.php');
 
 // Check if user is logged in and is a client
 if(!isset($_SESSION['user_id'])) {
@@ -39,7 +39,7 @@ if(isset($_SESSION['booking_travel_date'])) {
 
 // Check if schedule_id and travel_date are provided
 if(empty($schedule_id) || empty($travel_date)) {
-    header("Location: client_routes.php");
+    header("Location: cliente_rotas.php");
     exit;
 }
 
@@ -52,7 +52,7 @@ $schedule_result = $conn->query($schedule_query);
 
 if(!$schedule_result || $schedule_result->num_rows == 0) {
     $_SESSION['error_message'] = "Invalid schedule selected.";
-    header("Location: client_routes.php");
+    header("Location: cliente_rotas.php");
     exit;
 }
 
@@ -112,7 +112,7 @@ $booked_seats_result = $conn->query($booked_seats_query);
 
 if(!$booked_seats_result) {
     $_SESSION['error_message'] = "Error checking seat availability.";
-    header("Location: client_routes.php");
+    header("Location: cliente_rotas.php");
     exit;
 }
 
@@ -121,7 +121,7 @@ $available_seats = isset($schedule['capacity']) ? $schedule['capacity'] - $booke
 
 if($available_seats <= 0) {
     $_SESSION['error_message'] = "Sorry, this bus is fully booked for the selected date.";
-    header("Location: client_routes.php");
+    header("Location: cliente_rotas.php");
     exit;
 }
 
@@ -225,7 +225,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
                             }
                             
                             // Log transaction for user
-                            $transaction_type = 'purchase';
+                            $transaction_type = 'compra';
                             $reference = "Ticket #$ticket_number";
                             
                             $log_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
@@ -235,7 +235,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book'])) {
                                 // Log transaction for company
                                 if($company_wallet_id > 0) {
                                     $company_transaction = "INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, reference) 
-                                                          VALUES ($company_wallet_id, $ticket_price, 'deposit', 'Payment for $reference')";
+                                                          VALUES ($company_wallet_id, $ticket_price, 'deposito', 'Payment for $reference')";
                                     if(!$conn->query($company_transaction)) {
                                         throw new Exception("Error logging company transaction: " . $conn->error);
                                     }
@@ -323,10 +323,10 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-4">
-                    <a href="routes.php" class="hover:text-red-400 font-medium">Routes</a>
-                    <a href="timetables.php" class="hover:text-red-400">Timetables</a>
-                    <a href="prices.php" class="hover:text-red-400">Prices</a>
-                    <a href="contact.php" class="hover:text-red-400">Contact</a>
+                    <a href="rotas.php" class="hover:text-red-400 font-medium">Routes</a>
+                    <a href="horários.php" class="hover:text-red-400">Timetables</a>
+                    <a href="preços.php" class="hover:text-red-400">Prices</a>
+                    <a href="contactos.php" class="hover:text-red-400">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -344,13 +344,13 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
                         <?php if($_SESSION['user_type'] === 'client'): ?>
-                            <a href="client_dashboard.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Dashboard</a>
-                            <a href="client_tickets.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">My Tickets</a>
-                            <a href="client_wallet.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Wallet</a>
+                            <a href="cliente_painel.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Dashboard</a>
+                            <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">My Tickets</a>
+                            <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Wallet</a>
                         <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                            <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Admin Panel</a>
+                            <a href="admin_painel.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Admin Panel</a>
                         <?php endif; ?>
-                        <a href="profile.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Profile</a>
+                        <a href="perfil.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Profile</a>
                         <a href="logout.php" class="block px-4 py-2 text-gray-300 hover:bg-red-600 hover:text-white">Logout</a>
                     </div>
                 </div>
@@ -370,7 +370,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
     <div class="container mx-auto px-4 py-8">
         <!-- Actions Bar -->
         <div class="mb-6">
-            <a href="client_routes.php" class="text-red-400 hover:text-red-300">
+            <a href="cliente_rotas.php" class="text-red-400 hover:text-red-300">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Routes
             </a>
         </div>
@@ -379,7 +379,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
             <div class="bg-green-900 border-l-4 border-green-500 text-green-100 p-4 mb-6" role="alert">
                 <p><?php echo $success_message; ?></p>
                 <div class="mt-4">
-                    <a href="client_tickets.php" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-800 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring focus:ring-green-300 transition">
+                    <a href="cliente_bilhetes.php" class="inline-flex items-center px-4 py-2 bg-green-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-800 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring focus:ring-green-300 transition">
                         View My Tickets
                     </a>
                 </div>
@@ -391,7 +391,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                 <p><?php echo $error_message; ?></p>
                 <?php if(strpos($error_message, "Insufficient funds") !== false): ?>
                     <div class="mt-4">
-                        <a href="client_wallet.php" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-800 focus:outline-none focus:border-red-800 focus:ring focus:ring-red-300 transition">
+                        <a href="cliente_carteira.php" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-800 focus:outline-none focus:border-red-800 focus:ring focus:ring-red-300 transition">
                             Add Funds to Wallet
                         </a>
                     </div>
@@ -594,7 +594,7 @@ $formatted_travel_date = date('l, F j, Y', strtotime($travel_date));
                     
                     <?php if($balance < $ticket_price): ?>
                     <div class="mt-4 text-center">
-                        <a href="client_wallet.php" class="text-red-400 hover:text-red-300 text-sm font-medium">
+                        <a href="cliente_carteira.php" class="text-red-400 hover:text-red-300 text-sm font-medium">
                             Add funds to your wallet <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>

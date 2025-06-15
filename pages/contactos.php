@@ -87,10 +87,10 @@ session_start();
                     <span>Felix<span class="text-red-600">Bus</span></span>
                 </a>
                 <div class="hidden md:flex space-x-6">
-                    <a href="routes.php" class="nav-link hover:text-red-500">Routes</a>
-                    <a href="timetables.php" class="nav-link hover:text-red-500">Timetables</a>
-                    <a href="prices.php" class="nav-link hover:text-red-500">Prices</a>
-                    <a href="contact.php" class="nav-link text-red-500 font-medium">Contact</a>
+                    <a href="rotas.php" class="nav-link hover:text-red-500">Routes</a>
+                    <a href="horários.php" class="nav-link hover:text-red-500">Timetables</a>
+                    <a href="preços.php" class="nav-link hover:text-red-500">Prices</a>
+                    <a href="contactos.php" class="nav-link text-red-500 font-medium">Contact</a>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -109,19 +109,19 @@ session_start();
                              x-transition:leave-end="transform opacity-0 scale-95"
                              class="absolute right-0 w-48 py-2 mt-2 bg-gray-800 rounded-md shadow-xl z-20">
                             <?php if($_SESSION['user_type'] === 'client'): ?>
-                                <a href="client_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
-                                <a href="client_tickets.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
-                                <a href="client_wallet.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
+                                <a href="cliente_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Dashboard</a>
+                                <a href="cliente_bilhetes.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">My Tickets</a>
+                                <a href="cliente_carteira.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Wallet</a>
                             <?php elseif($_SESSION['user_type'] === 'staff' || $_SESSION['user_type'] === 'admin'): ?>
-                                <a href="admin_dashboard.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
+                                <a href="admin_painel.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Admin Panel</a>
                             <?php endif; ?>
-                            <a href="profile.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
+                            <a href="perfil.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Profile</a>
                             <a href="logout.php" class="block px-4 py-2 text-gray-200 hover:bg-red-600 hover:text-white">Logout</a>
                         </div>
                     </div>
                 <?php else: ?>
                     <a href="login.php" class="nav-link hover:text-red-500">Login</a>
-                    <a href="register.php" class="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition duration-300 btn-primary">Register</a>
+                    <a href="registar.php" class="bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700 transition duration-300 btn-primary">Register</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -134,10 +134,10 @@ session_start();
         <!-- Mobile menu -->
         <div id="mobile-menu" class="md:hidden hidden bg-gray-800 pb-4">
             <div class="container mx-auto px-4 flex flex-col space-y-2">
-                <a href="routes.php" class="text-white py-2 hover:text-red-500">Routes</a>
-                <a href="timetables.php" class="text-white py-2 hover:text-red-500">Timetables</a>
-                <a href="prices.php" class="text-white py-2 hover:text-red-500">Prices</a>
-                <a href="contact.php" class="text-red-500 py-2 font-medium">Contact</a>
+                <a href="rotas.php" class="text-white py-2 hover:text-red-500">Routes</a>
+                <a href="horários.php" class="text-white py-2 hover:text-red-500">Timetables</a>
+                <a href="preços.php" class="text-white py-2 hover:text-red-500">Prices</a>
+                <a href="contactos.php" class="text-red-500 py-2 font-medium">Contact</a>
             </div>
         </div>
     </nav>
@@ -198,9 +198,9 @@ session_start();
                             </div>
                             <div>
                                 <h3 class="font-bold text-white mb-1">Operating Hours</h3>
-                                <p class="text-gray-300">Monday - Friday: 8:00 AM - 8:00 PM</p>
-                                <p class="text-gray-300">Saturday: 9:00 AM - 6:00 PM</p>
-                                <p class="text-gray-300">Sunday: 10:00 AM - 4:00 PM</p>
+                                <p class="text-gray-300">Segunda - Sexta: 8:00 AM - 8:00 PM</p>
+                                <p class="text-gray-300">Sabado: 9:00 AM - 6:00 PM</p>
+                                <p class="text-gray-300">Domingo: 10:00 AM - 4:00 PM</p>
                             </div>
                         </div>
                     </div>
@@ -287,10 +287,10 @@ session_start();
                 <div>
                     <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="routes.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
-                        <li><a href="timetables.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
-                        <li><a href="prices.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
-                        <li><a href="contact.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
+                        <li><a href="rotas.php" class="text-gray-400 hover:text-red-500 transition duration-300">Routes</a></li>
+                        <li><a href="horários.php" class="text-gray-400 hover:text-red-500 transition duration-300">Timetables</a></li>
+                        <li><a href="preços.php" class="text-gray-400 hover:text-red-500 transition duration-300">Prices</a></li>
+                        <li><a href="contactos.php" class="text-gray-400 hover:text-red-500 transition duration-300">Contact Us</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Terms & Conditions</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-red-500 transition duration-300">Privacy Policy</a></li>
                     </ul>

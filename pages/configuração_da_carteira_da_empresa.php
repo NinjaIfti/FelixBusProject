@@ -1,13 +1,13 @@
 <?php
 session_start();
-include_once('basedados.h');
+include_once('../basedados/basedados.h');
 
 // Check if user is admin
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     echo "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;'>";
     echo "<h2 style='color: #d32f2f;'>Error: Unauthorized Access</h2>";
     echo "<p>You must be logged in as an administrator to run this script.</p>";
-    echo "<p><a href='../pages/login.php' style='color: #1976d2; text-decoration: none;'>Login as Administrator</a></p>";
+    echo "<p><a href='login.php' style='color: #1976d2; text-decoration: none;'>Login as Administrator</a></p>";
     echo "</div>";
     exit;
 }
@@ -15,23 +15,31 @@ if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 // Connect to database
 $conn = connectDatabase();
 
-// Read SQL file
-$sql = file_get_contents('company_wallet_setup.sql');
+// Execute SQL statements directly
+$sql = "
+-- Create company wallet if it doesn't exist
+INSERT INTO users (username, password, email, first_name, last_name, user_type) 
+SELECT 'felixbus', '$2y$10$someFixedHashForCompany', 'company@felixbus.com', 'FelixBus', 'Company', 'admin'
+FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'felixbus');
 
-// Split into individual statements
-$statements = explode(';', $sql);
+-- Get company ID
+SET @company_id = (SELECT id FROM users WHERE username = 'felixbus');
 
-// Execute each statement
+-- Create wallet if it doesn't exist
+INSERT INTO wallets (user_id, balance)
+SELECT @company_id, 10000.00
+FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM wallets WHERE user_id = @company_id);
+";
+
+// Execute statement
 $success = true;
 $error_message = '';
 
-foreach($statements as $statement) {
-    if(trim($statement) != '') {
-        if(!$conn->query($statement . ';')) {
-            $success = false;
-            $error_message .= "Error executing: " . $statement . " - " . $conn->error . "<br>";
-        }
-    }
+if(!$conn->multi_query($sql)) {
+    $success = false;
+    $error_message = "Error executing SQL: " . $conn->error;
 }
 
 // Output results
@@ -60,7 +68,7 @@ echo "<!DOCTYPE html>
         </div>
         
         <div class='flex justify-center'>
-            <a href='../pages/admin_company_wallet.php' class='px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200'>
+            <a href='admin_carteira_empresa.php' class='px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200'>
                 Go to Company Wallet
             </a>
         </div>
